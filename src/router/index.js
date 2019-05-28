@@ -51,110 +51,217 @@ export const constantRoutes = [
       path: 'dashboard',
       name: 'Dashboard',
       component: () => import('@/views/dashboard/index'),
-      meta: { title: 'Dashboard', icon: 'dashboard' }
+      meta: { title: '控制台', icon: 'dashboard' }
     }]
   },
 
   {
-    path: '/example',
+    path: '/website',
     component: Layout,
-    redirect: '/example/table',
-    name: 'Example',
-    meta: { title: 'Example', icon: 'example' },
+    redirect: 'noRedirect',
+    name: 'Website',
+    meta: { title: '网站栏目', icon: 'tree' },
     children: [
       {
-        path: 'table',
-        name: 'Table',
-        component: () => import('@/views/table/index'),
-        meta: { title: 'Table', icon: 'table' }
-      },
-      {
-        path: 'tree',
-        name: 'Tree',
-        component: () => import('@/views/tree/index'),
-        meta: { title: 'Tree', icon: 'tree' }
-      }
-    ]
-  },
-
-  {
-    path: '/form',
-    component: Layout,
-    children: [
-      {
-        path: 'index',
-        name: 'Form',
-        component: () => import('@/views/form/index'),
-        meta: { title: 'Form', icon: 'form' }
-      }
-    ]
-  },
-
-  {
-    path: '/nested',
-    component: Layout,
-    redirect: '/nested/menu1',
-    name: 'Nested',
-    meta: {
-      title: 'Nested',
-      icon: 'nested'
-    },
-    children: [
-      {
-        path: 'menu1',
-        component: () => import('@/views/nested/menu1/index'), // Parent router-view
-        name: 'Menu1',
-        meta: { title: 'Menu1' },
+        path: 'column',
+        component: () => import('@/views/dashboard/index'),
+        name: 'WebsiteColumn',
+        meta: { title: '栏目管理', breadcrumb: false },
         children: [
           {
-            path: 'menu1-1',
-            component: () => import('@/views/nested/menu1/menu1-1'),
-            name: 'Menu1-1',
-            meta: { title: 'Menu1-1' }
+            path: 'list',
+            component: () => import('@/views/dashboard/index'),
+            name: 'WebsiteColumnList',
+            meta: { title: '栏目管理', noCache: true }
           },
           {
-            path: 'menu1-2',
-            component: () => import('@/views/nested/menu1/menu1-2'),
-            name: 'Menu1-2',
-            meta: { title: 'Menu1-2' },
-            children: [
-              {
-                path: 'menu1-2-1',
-                component: () => import('@/views/nested/menu1/menu1-2/menu1-2-1'),
-                name: 'Menu1-2-1',
-                meta: { title: 'Menu1-2-1' }
-              },
-              {
-                path: 'menu1-2-2',
-                component: () => import('@/views/nested/menu1/menu1-2/menu1-2-2'),
-                name: 'Menu1-2-2',
-                meta: { title: 'Menu1-2-2' }
-              }
-            ]
-          },
-          {
-            path: 'menu1-3',
-            component: () => import('@/views/nested/menu1/menu1-3'),
-            name: 'Menu1-3',
-            meta: { title: 'Menu1-3' }
+            path: 'edit/:id(\\d+)',
+            component: () => import('@/views/dashboard/index'),
+            name: 'EditWebsiteColumn',
+            hidden: true,
+            meta: { title: '资料管理', noCache: true }
           }
         ]
       },
       {
-        path: 'menu2',
-        component: () => import('@/views/nested/menu2/index'),
-        meta: { title: 'menu2' }
+        path: 'list',
+        component: () => import('@/views/dashboard/index'),
+        name: 'ArticleList',
+        meta: { title: '文章列表页', noCache: true }
+      },
+      {
+        path: 'single',
+        component: () => import('@/views/dashboard/index'),
+        name: 'EditArticle',
+        meta: { title: '详情页', noCache: true }
+      }
+    ]
+  },
+  {
+    path: '/members',
+    component: Layout,
+    redirect: 'noRedirect',
+    name: 'Members',
+    meta: { title: '会员中心', icon: 'user' },
+    children: [
+      {
+        path: 'list',
+        component: () => import('@/views/dashboard/index'),
+        name: 'MembersList',
+        meta: { title: '会员管理' }
+      },
+      {
+        path: 'reply',
+        component: () => import('@/views/dashboard/index'),
+        name: 'ReplyMembers',
+        meta: { title: '客服工单' }
+      }
+    ]
+  },
+  {
+    path: '/message',
+    component: Layout,
+    redirect: 'noRedirect',
+    name: 'Message',
+    meta: { title: '在线留言', icon: 'email' },
+    children: [
+      {
+        path: 'list',
+        component: () => import('@/views/dashboard/index'),
+        name: 'MessageList',
+        meta: { title: '在线留言', breadcrumb: false }
+      }
+    ]
+  },
+  {
+    path: '/media',
+    component: Layout,
+    redirect: 'noRedirect',
+    name: 'Media',
+    meta: { title: '文件管理', icon: 'zip' },
+    children: [
+      {
+        path: 'list',
+        component: () => import('@/views/dashboard/index'),
+        name: 'MediaList',
+        meta: { title: '文件管理', breadcrumb: false }
+      }
+    ]
+  },
+  {
+    path: '/user',
+    component: Layout,
+    name: 'User',
+    redirect: 'noredirect',
+    meta: { title: '系统用户', icon: 'password' },
+    children: [
+      {
+        path: 'list',
+        component: () => import('@/views/dashboard/index'),
+        name: 'UserManage',
+        meta: { title: '成员管理' },
+        children: [
+          {
+            path: '',
+            component: () => import('@/views/dashboard/index'),
+            name: 'UserList',
+            meta: { title: '成员管理', activeMenu: '/user/member', breadcrumb: false }
+          },
+          {
+            path: 'insert',
+            component: () => import('@/views/dashboard/index'),
+            name: 'NewUser',
+            meta: { title: '新成员', activeMenu: '/user/member' },
+            hidden: true
+          },
+          {
+            path: 'edit/:id',
+            component: () => import('@/views/dashboard/index'),
+            name: 'EditUser',
+            meta: { title: '成员修改', activeMenu: '/user/member' },
+            hidden: true
+          }
+        ]
+      },
+      {
+        path: 'role',
+        component: () => import('@/views/dashboard/index'),
+        name: 'RoleManage',
+        meta: { title: '角色管理' },
+        children: [
+          {
+            path: '',
+            component: () => import('@/views/dashboard/index'),
+            name: 'RoleList',
+            meta: { title: '角色管理', activeMenu: '/user/roles', breadcrumb: false }
+          },
+          {
+            path: 'insert',
+            component: () => import('@/views/dashboard/index'),
+            name: 'NewRole',
+            meta: { title: '新角色', activeMenu: '/user/roles' },
+            hidden: true
+          },
+          {
+            path: 'edit/:id',
+            component: () => import('@/views/dashboard/index'),
+            name: 'EditRole',
+            meta: { title: '角色修改', activeMenu: '/user/roles' },
+            hidden: true
+          }
+        ]
+      },
+      {
+        path: 'record',
+        component: () => import('@/views/dashboard/index'),
+        name: 'UserRecord',
+        meta: { title: '登录日志' }
+      }
+    ]
+  },
+  {
+    path: '/system',
+    component: Layout,
+    name: 'System',
+    redirect: 'noRedirect',
+    meta: { title: '系统功能', icon: 'component' },
+    children: [
+      {
+        path: 'task',
+        component: () => import('@/views/dashboard/index'),
+        name: 'SystemTask',
+        meta: { title: '计划任务' }
+      },
+      {
+        path: 'template',
+        component: () => import('@/views/dashboard/index'),
+        name: 'SystemTemplate',
+        meta: { title: '模板管理' }
+      },
+      {
+        path: 'setting',
+        component: () => import('@/views/dashboard/index'),
+        name: 'SystemSetting',
+        meta: { title: '系统设置' }
+      },
+      {
+        path: 'help',
+        component: () => import('@/views/dashboard/index'),
+        name: 'SystemHelp',
+        meta: { title: '帮助中心' }
       }
     ]
   },
 
   {
-    path: 'external-link',
+    path: '/icon',
     component: Layout,
     children: [
       {
-        path: 'https://panjiachen.github.io/vue-element-admin-site/#/',
-        meta: { title: 'External Link', icon: 'link' }
+        path: 'index',
+        component: () => import('@/views/icons/index'),
+        name: 'Icons',
+        meta: { title: '图标查看（demo）', icon: 'icon', noCache: true }
       }
     ]
   },

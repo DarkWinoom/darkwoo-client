@@ -24,7 +24,7 @@ export default {
   },
   data() {
     return {
-      title: 'Vue Admin Template',
+      title: '后台管理系统',
       logo: 'https://wpimg.wallstcn.com/69a1c46c-eb1c-4b46-8bd4-e9e686ef5251.png'
     }
   }
@@ -32,6 +32,18 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.sidebar-container a{
+  text-align: left;
+  padding: 0 15px;
+}
+
+.hideSidebar{
+  .sidebar-container a{
+    text-align: center;
+    padding: 0;
+  }
+}
+
 .sidebarLogoFade-enter-active {
   transition: opacity 1.5s;
 }

@@ -3,6 +3,10 @@
   "version": "0.0.1",
   "description": "A magical CMS, part of client (using Vue)",
   "author": "DarkWinoom <archzars@vip.qq.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DarkWinoom/darkwoo-client"
+  },
   "license": "MIT",
   "scripts": {
     "dev": "vue-cli-service serve",
@@ -16,11 +20,14 @@
   },
   "dependencies": {
     "axios": "0.18.0",
+    "clipboard": "^2.0.4",
     "element-ui": "2.7.2",
+    "fuse.js": "^3.4.4",
     "js-cookie": "2.2.0",
     "normalize.css": "7.0.0",
     "nprogress": "0.2.0",
     "path-to-regexp": "2.4.0",
+    "screenfull": "^4.2.0",
     "vue": "2.6.10",
     "vue-router": "3.0.6",
     "vuex": "3.1.0"
@@ -30,12 +37,12 @@
     "@babel/register": "7.0.0",
     "@vue/cli-plugin-babel": "3.6.0",
     "@vue/cli-plugin-eslint": "3.6.0",
-    "@vue/cli-plugin-unit-jest": "3.6.3",
+    "@vue/cli-plugin-unit-jest": "^3.8.0",
     "@vue/cli-service": "3.6.0",
     "@vue/test-utils": "1.0.0-beta.29",
     "babel-core": "7.0.0-bridge.0",
     "babel-eslint": "10.0.1",
-    "babel-jest": "23.6.0",
+    "babel-jest": "^24.8.0",
     "chalk": "2.4.2",
     "connect": "3.6.6",
     "eslint": "5.15.3",

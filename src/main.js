@@ -13,6 +13,7 @@ import store from './store'
 import router from './router'
 
 import '@/icons' // icon
+import './utils/error-log.js' // error log
 import '@/permission' // permission control
 
 /**
