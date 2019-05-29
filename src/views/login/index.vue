@@ -3,7 +3,7 @@
     <el-form ref="loginForm" :model="loginForm" :rules="loginRules" class="login-form" auto-complete="on" label-position="left">
 
       <div class="title-container">
-        <h3 class="title">Login Form</h3>
+        <h3 class="title">系统登录</h3>
       </div>
 
       <el-form-item prop="username">
@@ -21,31 +21,51 @@
         />
       </el-form-item>
 
-      <el-form-item prop="password">
-        <span class="svg-container">
-          <svg-icon icon-class="password" />
-        </span>
-        <el-input
-          :key="passwordType"
-          ref="password"
-          v-model="loginForm.password"
-          :type="passwordType"
-          placeholder="Password"
-          name="password"
-          tabindex="2"
-          auto-complete="on"
-          @keyup.enter.native="handleLogin"
+      <el-tooltip v-model="capsTooltip" content="大写锁定已开启" placement="right" manual>
+        <el-form-item prop="password">
+          <span class="svg-container">
+            <svg-icon icon-class="password" />
+          </span>
+          <el-input
+            :key="passwordType"
+            ref="password"
+            v-model="loginForm.password"
+            :type="passwordType"
+            placeholder="Password"
+            name="password"
+            tabindex="2"
+            auto-complete="on"
+            @keyup.native="checkCapslock"
+            @blur="capsTooltip = false"
+            @keyup.enter.native="handleLogin"
+          />
+          <span class="show-pwd" @click="showPwd">
+            <svg-icon :icon-class="passwordType === 'password' ? 'eye' : 'eye-open'" />
+          </span>
+        </el-form-item>
+      </el-tooltip>
+
+      <el-form-item>
+        <drag-verify
+          ref="Verify"
+          :width="448"
+          :height="40"
+          :circle="false"
+          handler-icon="el-icon-d-arrow-right"
+          success-icon="el-icon-check"
+          text="请将滑块拖动到右侧"
+          success-text="验证成功"
+          background="#ddd"
+          progress-bar-bg="#2ACBF8"
+          text-size="14px"
         />
-        <span class="show-pwd" @click="showPwd">
-          <svg-icon :icon-class="passwordType === 'password' ? 'eye' : 'eye-open'" />
-        </span>
       </el-form-item>
 
-      <el-button :loading="loading" type="primary" style="width:100%;margin-bottom:30px;" @click.native.prevent="handleLogin">Login</el-button>
+      <el-button :loading="loading" type="primary" style="width:100%;margin-bottom:30px;" @click.native.prevent="handleLogin">登录</el-button>
 
       <div class="tips">
-        <span style="margin-right:20px;">username: admin</span>
-        <span> password: any</span>
+        <social-sign />
+        <a class="thirdparty-button">忘记密码</a>
       </div>
 
     </el-form>
@@ -54,20 +74,26 @@
 
 <script>
 import { validUsername } from '@/utils/validate'
+import SocialSign from './components/SocialSign'
+import dragVerify from 'vue-drag-verify'
 
 export default {
   name: 'Login',
+  components: {
+    SocialSign,
+    dragVerify
+  },
   data() {
     const validateUsername = (rule, value, callback) => {
       if (!validUsername(value)) {
-        callback(new Error('Please enter the correct user name'))
+        callback(new Error('请输入正确的用户名'))
       } else {
         callback()
       }
     }
     const validatePassword = (rule, value, callback) => {
-      if (value.length < 6) {
-        callback(new Error('The password can not be less than 6 digits'))
+      if (value.length < 5) {
+        callback(new Error('密码不能小于5位'))
       } else {
         callback()
       }
@@ -75,14 +101,15 @@ export default {
     return {
       loginForm: {
         username: 'admin',
-        password: '111111'
+        password: 'admin'
       },
       loginRules: {
         username: [{ required: true, trigger: 'blur', validator: validateUsername }],
         password: [{ required: true, trigger: 'blur', validator: validatePassword }]
       },
-      loading: false,
       passwordType: 'password',
+      capsTooltip: false,
+      loading: false,
       redirect: undefined
     }
   },
@@ -94,7 +121,32 @@ export default {
       immediate: true
     }
   },
+  created() {
+    // window.addEventListener('storage', this.afterQRScan)
+  },
+  mounted() {
+    if (this.loginForm.username === '') {
+      this.$refs.username.focus()
+    } else if (this.loginForm.password === '') {
+      this.$refs.password.focus()
+    }
+  },
+  destroyed() {
+    // window.removeEventListener('storage', this.afterQRScan)
+  },
   methods: {
+    checkCapslock({ shiftKey, key } = {}) {
+      if (key && key.length === 1) {
+        if (shiftKey && (key >= 'a' && key <= 'z') || !shiftKey && (key >= 'A' && key <= 'Z')) {
+          this.capsTooltip = true
+        } else {
+          this.capsTooltip = false
+        }
+      }
+      if (key === 'CapsLock' && this.capsTooltip === true) {
+        this.capsTooltip = false
+      }
+    },
     showPwd() {
       if (this.passwordType === 'password') {
         this.passwordType = ''
@@ -108,19 +160,41 @@ export default {
     handleLogin() {
       this.$refs.loginForm.validate(valid => {
         if (valid) {
-          this.loading = true
-          this.$store.dispatch('user/login', this.loginForm).then(() => {
-            this.$router.push({ path: this.redirect || '/' })
-            this.loading = false
-          }).catch(() => {
-            this.loading = false
-          })
+          if (!this.$refs.Verify.isPassing) {
+            this.$message.error('请将滑块拖动到右侧')
+          } else {
+            this.loading = true
+            this.$store.dispatch('user/login', this.loginForm).then(() => {
+              this.$router.push({ path: this.redirect || '/' })
+              this.loading = false
+            }).catch(() => {
+              this.loading = false
+            })
+          }
         } else {
           console.log('error submit!!')
           return false
         }
       })
     }
+    // afterQRScan() {
+    //   if (e.key === 'x-admin-oauth-code') {
+    //     const code = getQueryObject(e.newValue)
+    //     const codeMap = {
+    //       wechat: 'code',
+    //       tencent: 'code'
+    //     }
+    //     const type = codeMap[this.auth_type]
+    //     const codeName = code[type]
+    //     if (codeName) {
+    //       this.$store.dispatch('LoginByThirdparty', codeName).then(() => {
+    //         this.$router.push({ path: this.redirect || '/' })
+    //       })
+    //     } else {
+    //       alert('第三方登录失败')
+    //     }
+    //   }
+    // }
   }
 }
 </script>
@@ -169,6 +243,37 @@ $cursor: #fff;
     border-radius: 5px;
     color: #454545;
   }
+
+  .drag_verify {
+    border-radius: 4px !important;
+
+    .dv_progress_bar {
+      border-radius: 4px !important;
+    }
+
+    .dv_handler {
+      border-radius: 4px !important;
+      top: 1px !important;
+    }
+
+    .dv_text {
+      background: -webkit-gradient(linear, left top, right top, color-stop(0, #4d4d4d), color-stop(0.4, #4d4d4d), color-stop(0.5, white), color-stop(0.6, #4d4d4d), color-stop(1, #4d4d4d));
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      -webkit-text-size-adjust: none;
+      animation: slidetounlock 5s infinite;
+    }
+
+    @keyframes slidetounlock {
+      0% {
+        background-position: -200px 0;
+      }
+
+      100% {
+        background-position: 200px 0;
+      }
+    }
+  }
 }
 </style>
 
@@ -180,7 +285,8 @@ $light_gray:#eee;
 .login-container {
   min-height: 100%;
   width: 100%;
-  background-color: $bg;
+  background: url('../../assets/login-bg.jpg');
+  background-size: cover;
   overflow: hidden;
 
   .login-form {
@@ -193,14 +299,16 @@ $light_gray:#eee;
   }
 
   .tips {
+    position: relative;
     font-size: 14px;
     color: #fff;
-    margin-bottom: 10px;
+    min-height: 40px;
 
-    span {
-      &:first-of-type {
-        margin-right: 16px;
-      }
+    .thirdparty-button {
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
     }
   }
 
