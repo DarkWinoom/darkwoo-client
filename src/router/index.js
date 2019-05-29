@@ -53,7 +53,14 @@ export const constantRoutes = [
       component: () => import('@/views/dashboard/index'),
       meta: { title: '控制台', icon: 'dashboard' }
     }]
-  },
+  }
+]
+
+/**
+ * asyncRoutes
+ * the routes that need to be dynamically loaded based on user roles
+ */
+export const asyncRoutes = [
 
   {
     path: '/website',
@@ -151,14 +158,12 @@ export const constantRoutes = [
   {
     path: '/user',
     component: Layout,
-    name: 'User',
     redirect: 'noredirect',
     meta: { title: '系统用户', icon: 'password' },
     children: [
       {
         path: 'list',
         component: () => import('@/views/dashboard/index'),
-        name: 'UserManage',
         meta: { title: '成员管理' },
         children: [
           {
@@ -186,7 +191,6 @@ export const constantRoutes = [
       {
         path: 'role',
         component: () => import('@/views/dashboard/index'),
-        name: 'RoleManage',
         meta: { title: '角色管理' },
         children: [
           {
