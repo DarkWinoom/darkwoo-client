@@ -20,17 +20,22 @@
         </div>
         <el-dropdown-menu slot="dropdown" class="user-dropdown">
           <router-link to="/">
-            <el-dropdown-item title="个人资料">
-              {{ name }}
+            <el-dropdown-item>
+              首页
             </el-dropdown-item>
           </router-link>
           <router-link to="/">
             <el-dropdown-item>
-              设置中心
+              个人中心
+            </el-dropdown-item>
+          </router-link>
+          <router-link to="/">
+            <el-dropdown-item>
+              密码重置
             </el-dropdown-item>
           </router-link>
           <el-dropdown-item divided>
-            <span style="display:block;" @click="logout">安全退出</span>
+            <span style="display:block;" @click="handleLogout">安全退出</span>
           </el-dropdown-item>
         </el-dropdown-menu>
       </el-dropdown>
@@ -65,6 +70,15 @@ export default {
   methods: {
     toggleSideBar() {
       this.$store.dispatch('app/toggleSideBar')
+    },
+    handleLogout() {
+      this.$confirm('确定退出登录？', '系统提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.logout()
+      })
     },
     async logout() {
       await this.$store.dispatch('user/logout')
