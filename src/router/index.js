@@ -156,34 +156,35 @@ export const asyncRoutes = [
     ]
   },
   {
-    path: '/user',
+    path: '/users',
     component: Layout,
-    redirect: 'noredirect',
+    redirect: 'noRedirect',
     meta: { title: '系统用户', icon: 'password' },
     children: [
       {
-        path: 'list',
-        component: () => import('@/views/dashboard/index'),
+        path: 'management',
+        component: () => import('@/views/index'),
+        redirect: 'list',
         meta: { title: '成员管理' },
         children: [
           {
-            path: '',
-            component: () => import('@/views/dashboard/index'),
+            path: 'list',
+            component: () => import('@/views/users/list'),
             name: 'UserList',
-            meta: { title: '成员管理', activeMenu: '/user/member', breadcrumb: false }
+            meta: { title: '成员管理', breadcrumb: false }
           },
           {
             path: 'insert',
-            component: () => import('@/views/dashboard/index'),
+            component: () => import('@/views/users/edit'),
             name: 'NewUser',
-            meta: { title: '新成员', activeMenu: '/user/member' },
+            meta: { title: '新成员', activeMenu: '/users/management/list' },
             hidden: true
           },
           {
             path: 'edit/:id',
-            component: () => import('@/views/dashboard/index'),
+            component: () => import('@/views/users/edit'),
             name: 'EditUser',
-            meta: { title: '成员修改', activeMenu: '/user/member' },
+            meta: { title: '成员修改', activeMenu: '/users/management/list' },
             hidden: true
           }
         ]
