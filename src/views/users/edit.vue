@@ -1,11 +1,6 @@
 <template>
-  <div class="app-container">
-    <sticky :z-index="10" :sticky-top="84" class-name="sub-navbar">
-      <div class="button">
-        <el-button v-if="back" size="medium" icon="el-icon-back" @click="goBack">返回</el-button>
-        <el-button size="medium" type="success" icon="el-icon-check" @click="submit">提交</el-button>
-      </div>
-    </sticky>
+  <div class="app-container no-padding">
+    <submit-bar :url="back" @submit="submit" />
     <el-form
       ref="form"
       v-loading="loading"
@@ -84,10 +79,10 @@
   </div>
 </template>
 <script>
-import Sticky from '@/components/Sticky'
+import SubmitBar from '@/components/SubmitBar'
 
 export default {
-  components: { Sticky },
+  components: { SubmitBar },
   data() {
     return {
       loading: true,
@@ -206,11 +201,6 @@ export default {
     }
   },
   methods: {
-    goBack() {
-      this.$router.push({
-        path: this.back
-      })
-    },
     handleChangeAvatar(avatar_id) {
       this.ruleForm.avatar = avatar_id
     },
@@ -230,8 +220,7 @@ export default {
                 message: '提交成功!'
               })
               this.$router.push({
-                path: this.back,
-                params: { refresh: new Date() }
+                path: this.back
               })
             })
           }
@@ -243,78 +232,46 @@ export default {
   }
 }
 </script>
-<style lang="scss">
-input {
-  text-align: inherit;
-}
-.sub-navbar {
-  height: 50px;
-  line-height: 50px;
-  position: relative;
-  width: 100%;
-  text-align: right;
-  padding-right: 20px;
-  transition: 600ms ease position;
-  background: rgba(0, 0, 0, 0.15);
-
-  .subtitle {
-    font-size: 20px;
-    color: #fff;
-  }
-
-  &.draft {
-    background: #d0d0d0;
-  }
-
-  &.deleted {
-    background: #d0d0d0;
-  }
-}
-</style>
-
 <style lang="scss" scoped>
-.app-container {
-  padding: 0;
-}
 .form-container {
   padding: 20px;
-}
-.el-radio {
-  margin-right: 0;
-}
-.box-card {
-  .header {
-    position: relative;
-    .required {
-      &:before {
-        content: "*";
-        color: #f56c6c;
-        margin-right: 4px;
-      }
-    }
-    .editor {
-      position: absolute;
-      top: 50%;
-      right: 0;
-      transform: translateY(-50%);
-    }
+  .el-radio {
+    margin-right: 0;
   }
-  .item {
-    position: relative;
-    text-align: center;
-    .thumbnails {
-      padding-bottom: 15px;
-      img {
-        display: inline-block;
-        max-width: 100%;
-        cursor: pointer;
+  .box-card {
+    .header {
+      position: relative;
+      .required {
+        &:before {
+          content: "*";
+          color: #f56c6c;
+          margin-right: 4px;
+        }
+      }
+      .editor {
+        position: absolute;
+        top: 50%;
+        right: 0;
+        transform: translateY(-50%);
       }
     }
-    .tips {
-      font-size: 14px;
-      p {
-        margin: 0;
-        line-height: 1.9;
+    .item {
+      position: relative;
+      text-align: center;
+      .thumbnails {
+        padding-bottom: 15px;
+        img {
+          display: inline-block;
+          max-width: 100%;
+          cursor: pointer;
+        }
+      }
+      .tips {
+        font-size: 14px;
+        p {
+          margin: 0;
+          line-height: 1.9;
+        }
       }
     }
   }

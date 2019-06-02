@@ -4,15 +4,7 @@
       <app-link :to="insertLink">
         <el-button class="filter-item" size="small" type="success" icon="el-icon-plus">新成员</el-button>
       </app-link>
-      <div class="batch">
-        <span>批量操作：</span>
-        <el-button-group>
-          <el-button type="default" size="small">排序</el-button>
-          <el-button type="success" size="small">启用</el-button>
-          <el-button type="info" size="small">停用</el-button>
-          <el-button type="danger" size="small">删除</el-button>
-        </el-button-group>
-      </div>
+      <batch-operation />
       <el-table
         ref="multipleTable"
         v-loading="loading"
@@ -79,11 +71,13 @@
 <script>
 import { formatTime } from '@/utils/index'
 import AppLink from '@/layout/components/Sidebar/Link'
+import BatchOperation from '@/components/BatchOperation'
 
 export default {
   name: 'UserList',
   components: {
-    AppLink
+    AppLink,
+    BatchOperation
   },
   filters: {
     formatTime(value) {
@@ -190,11 +184,6 @@ p{
         display: inline-block;
         vertical-align: middle;
         margin: 0 5px 20px 0;
-    }
-
-    .batch {
-        float: right;
-        font-size: 15px;
     }
 
     &.bottom {
