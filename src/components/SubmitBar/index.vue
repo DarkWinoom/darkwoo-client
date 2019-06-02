@@ -1,31 +1,32 @@
 <template>
   <div :style="{height:height+'px',zIndex:zIndex}">
     <div
-      :class="className"
+      class="sub-navbar"
       :style="{top:(isSticky ? stickyTop +'px' : ''),zIndex:zIndex,position:position,width:width,height:height+'px'}"
     >
-      <slot>
-        <div>sticky</div>
-      </slot>
+      <div class="button">
+        <el-button v-if="url" size="medium" icon="el-icon-back" @click="goBack">返回</el-button>
+        <el-button size="medium" type="success" icon="el-icon-check" @click="submit">提交</el-button>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'Sticky',
+  name: 'SubmitBar',
   props: {
+    url: {
+      type: String,
+      default: ''
+    },
     stickyTop: {
       type: Number,
-      default: 0
+      default: 84
     },
     zIndex: {
       type: Number,
-      default: 1
-    },
-    className: {
-      type: String,
-      default: ''
+      default: 10
     }
   },
   data() {
@@ -50,6 +51,14 @@ export default {
     window.removeEventListener('resize', this.handleResize)
   },
   methods: {
+    goBack() {
+      this.$router.push({
+        path: this.url
+      })
+    },
+    submit() {
+      this.$emit('submit')
+    },
     sticky() {
       if (this.active) {
         return
@@ -89,3 +98,28 @@ export default {
   }
 }
 </script>
+<style lang="scss" scoped>
+.sub-navbar {
+  height: 50px;
+  line-height: 50px;
+  position: relative;
+  width: 100%;
+  text-align: right;
+  padding-right: 20px;
+  transition: 600ms ease position;
+  background: rgba(0, 0, 0, 0.15);
+
+  .subtitle {
+    font-size: 20px;
+    color: #fff;
+  }
+
+  &.draft {
+    background: #d0d0d0;
+  }
+
+  &.deleted {
+    background: #d0d0d0;
+  }
+}
+</style>

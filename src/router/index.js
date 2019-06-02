@@ -190,28 +190,28 @@ export const asyncRoutes = [
         ]
       },
       {
-        path: 'role',
-        component: () => import('@/views/dashboard/index'),
+        path: 'roles',
+        component: () => import('@/views/index'),
         meta: { title: '角色管理' },
         children: [
           {
-            path: '',
-            component: () => import('@/views/dashboard/index'),
+            path: 'list',
+            component: () => import('@/views/roles/list'),
             name: 'RoleList',
-            meta: { title: '角色管理', activeMenu: '/user/roles', breadcrumb: false }
+            meta: { title: '角色管理', breadcrumb: false }
           },
           {
             path: 'insert',
-            component: () => import('@/views/dashboard/index'),
+            component: () => import('@/views/roles/edit'),
             name: 'NewRole',
-            meta: { title: '新角色', activeMenu: '/user/roles' },
+            meta: { title: '新角色', activeMenu: '/users/roles/list' },
             hidden: true
           },
           {
             path: 'edit/:id',
-            component: () => import('@/views/dashboard/index'),
+            component: () => import('@/views/roles/edit'),
             name: 'EditRole',
-            meta: { title: '角色修改', activeMenu: '/user/roles' },
+            meta: { title: '角色修改', activeMenu: '/users/roles/list' },
             hidden: true
           }
         ]
