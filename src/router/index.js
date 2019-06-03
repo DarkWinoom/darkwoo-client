@@ -246,7 +246,7 @@ export const asyncRoutes = [
       },
       {
         path: 'setting',
-        component: () => import('@/views/dashboard/index'),
+        component: () => import('@/views/system/setting'),
         name: 'SystemSetting',
         meta: { title: '系统设置' }
       },
