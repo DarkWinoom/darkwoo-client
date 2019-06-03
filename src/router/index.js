@@ -218,9 +218,9 @@ export const asyncRoutes = [
         ]
       },
       {
-        path: 'record',
-        component: () => import('@/views/dashboard/index'),
-        name: 'UserRecord',
+        path: 'logs',
+        component: () => import('@/views/users/logs'),
+        name: 'UserLogs',
         meta: { title: '登录日志' }
       }
     ]
