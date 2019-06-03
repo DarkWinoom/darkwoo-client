@@ -126,7 +126,7 @@ export const asyncRoutes = [
     ]
   },
   {
-    path: '/message',
+    path: '/messages',
     component: Layout,
     redirect: 'noRedirect',
     name: 'Message',
@@ -134,7 +134,7 @@ export const asyncRoutes = [
     children: [
       {
         path: 'list',
-        component: () => import('@/views/dashboard/index'),
+        component: () => import('@/views/messages/list'),
         name: 'MessageList',
         meta: { title: '在线留言', breadcrumb: false }
       }
