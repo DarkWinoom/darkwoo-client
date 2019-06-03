@@ -1,6 +1,6 @@
 <template>
   <div class="app-container no-padding">
-    <submit-bar :url="back" @submit="submit" />
+    <submit-bar :back-url="back" @submit="submit" />
     <div class="form-container">
       <el-form
         ref="form"

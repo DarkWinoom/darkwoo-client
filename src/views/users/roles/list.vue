@@ -1,13 +1,11 @@
 <template>
   <div class="app-container">
-    <div class="filter-container">
-      <app-link :to="insertLink">
-        <el-button class="filter-item" size="small" type="success" icon="el-icon-plus">新角色</el-button>
-      </app-link>
-      <batch-operation />
-    </div>
+    <menu-container
+      :app-link="link"
+      :batch="batch"
+    />
     <el-table
-      ref="multipleTable"
+      ref="mainTable"
       v-loading="loading"
       :data="list"
       border
@@ -46,18 +44,23 @@
   </div>
 </template>
 <script>
-import AppLink from '@/layout/components/Sidebar/Link'
-import BatchOperation from '@/components/BatchOperation'
+import MenuContainer from '@/components/MenuContainer'
 
 export default {
-  name: 'RoleList',
+  name: 'UserRoleList',
   components: {
-    AppLink,
-    BatchOperation
+    MenuContainer
   },
   data() {
     return {
-      insertLink: '/users/roles/insert',
+      link: {
+        url: '/users/roles/insert',
+        name: '新角色'
+      },
+      batch: {
+        sequence: '排序',
+        delete: '删除'
+      },
       list: [
         {
           id: 1,

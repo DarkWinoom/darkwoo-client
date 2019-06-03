@@ -1,83 +1,78 @@
 <template>
   <div class="app-container">
-    <div class="filter-container">
-      <app-link :to="insertLink">
-        <el-button class="filter-item" size="small" type="success" icon="el-icon-plus">新成员</el-button>
-      </app-link>
-      <batch-operation />
-      <el-table
-        ref="multipleTable"
-        v-loading="loading"
-        :data="list"
-        border
-        stripe
-        tooltip-effect="dark"
-        @selection-change="handleSelectionChange"
-      >
-        <el-table-column type="selection" align="center" width="55" />
-        <el-table-column align="center" label="排序" width="80">
-          <template slot-scope="scope">
-            <el-input
-              ref="sequence"
-              v-model="scope.row.sequence"
-              size="mini"
-              style="text-align:center"
-              @focus="inputFocus"
-            />
-          </template>
-        </el-table-column>
-        <el-table-column label="角色" align="center" width="120">
-          <template slot-scope="scope">{{ scope.row.roles? scope.row.roles.name : '-' }}</template>
-        </el-table-column>
-        <el-table-column label="账号信息" min-width="200">
-          <template slot-scope="scope">
-            <p>{{ scope.row.nickname }} <b class="color-theme">({{ scope.row.name }})</b></p>
-            <p v-if="scope.row.email" class="email">{{ scope.row.email }}</p>
-          </template>
-        </el-table-column>
-        <el-table-column :sortable="true" label="最后登陆" align="center" width="150">
-          <template slot-scope="scope">
-            <i class="el-icon-time" />
-            {{ scope.row.time | formatTime }}
-          </template>
-        </el-table-column>
-        <el-table-column label="状态" align="center" width="100">
-          <template slot-scope="scope">
-            <el-tag :type="scope.row.status? 'success':'info'">
-              {{ filterRow(scope.row.status,'status') }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" align="center" width="230">
-          <template slot-scope="scope">
-            <el-button type="default" size="mini" @click="goEditor(scope.row.id)">编辑</el-button>
-            <el-button
-              v-if="!scope.row.status"
-              size="mini"
-              type="success"
-            >启用</el-button>
-            <el-button
-              v-if="scope.row.status"
-              size="mini"
-              type="info"
-            >停用</el-button>
-            <el-button size="mini" type="danger">删除</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-    </div>
+    <menu-container
+      :app-link="link"
+      :batch="batch"
+    />
+    <el-table
+      ref="mainTable"
+      v-loading="loading"
+      :data="list"
+      border
+      stripe
+      tooltip-effect="dark"
+      @selection-change="handleSelectionChange"
+    >
+      <el-table-column type="selection" align="center" width="55" />
+      <el-table-column align="center" label="排序" width="80">
+        <template slot-scope="scope">
+          <el-input
+            ref="sequence"
+            v-model="scope.row.sequence"
+            size="mini"
+            style="text-align:center"
+            @focus="inputFocus"
+          />
+        </template>
+      </el-table-column>
+      <el-table-column label="角色" align="center" width="120">
+        <template slot-scope="scope">{{ scope.row.roles? scope.row.roles.name : '-' }}</template>
+      </el-table-column>
+      <el-table-column label="账号信息" min-width="200">
+        <template slot-scope="scope">
+          <p>{{ scope.row.nickname }} <b class="color-theme">({{ scope.row.name }})</b></p>
+          <p v-if="scope.row.email" class="email">{{ scope.row.email }}</p>
+        </template>
+      </el-table-column>
+      <el-table-column :sortable="true" label="最后登陆" align="center" width="150">
+        <template slot-scope="scope">
+          <i class="el-icon-time" />
+          {{ scope.row.time | formatTime }}
+        </template>
+      </el-table-column>
+      <el-table-column label="状态" align="center" width="100">
+        <template slot-scope="scope">
+          <el-tag v-show="!scope.row.status" type="info">已停用</el-tag>
+          <el-tag v-show="scope.row.status" type="success">使用中</el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column label="操作" align="center" width="230">
+        <template slot-scope="scope">
+          <el-button type="default" size="mini" @click="goEditor(scope.row.id)">编辑</el-button>
+          <el-button
+            v-if="!scope.row.status"
+            size="mini"
+            type="success"
+          >启用</el-button>
+          <el-button
+            v-if="scope.row.status"
+            size="mini"
+            type="info"
+          >停用</el-button>
+          <el-button size="mini" type="danger">删除</el-button>
+        </template>
+      </el-table-column>
+    </el-table>
   </div>
 </template>
 <script>
 import { formatTime } from '@/utils/index'
-import AppLink from '@/layout/components/Sidebar/Link'
-import BatchOperation from '@/components/BatchOperation'
+import MenuContainer from '@/components/MenuContainer'
 
 export default {
   name: 'UserList',
   components: {
-    AppLink,
-    BatchOperation
+    MenuContainer
   },
   filters: {
     formatTime(value) {
@@ -87,18 +82,15 @@ export default {
   data() {
     return {
       loading: true,
-      insertLink: '/users/management/insert',
-      filter: {
-        status: [
-          {
-            id: 1,
-            name: '使用中'
-          },
-          {
-            id: 0,
-            name: '已停用'
-          }
-        ]
+      link: {
+        url: '/users/management/insert',
+        name: '新成员'
+      },
+      batch: {
+        sequence: '排序',
+        enable: '启用',
+        disable: '停用',
+        delete: '删除'
       },
       list: [
         {
@@ -114,7 +106,7 @@ export default {
           sequence: 0
         },
         {
-          id: 1,
+          id: 2,
           roles: {
             name: '小编'
           },
@@ -149,21 +141,6 @@ export default {
         e.currentTarget.select()
       }
     },
-    filterRow(value, key) {
-      if (this.filter[key]) {
-        const items = this.filter[key].reduce((acc, cur) => {
-          acc[cur.id] = cur.name
-          return acc
-        }, {})
-        if (items[value]) {
-          return items[value]
-        } else {
-          return '-'
-        }
-      } else {
-        return value
-      }
-    },
     handleSelectionChange(val) {
       this.multipleSelection = val
     }
@@ -176,18 +153,5 @@ p{
   &.email{
     color: #a4a4a4;
   }
-}
-.filter-container {
-    padding-bottom: 0;
-
-    .filter-item {
-        display: inline-block;
-        vertical-align: middle;
-        margin: 0 5px 20px 0;
-    }
-
-    &.bottom {
-        padding: 20px 0 0;
-    }
 }
 </style>

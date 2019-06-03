@@ -192,25 +192,26 @@ export const asyncRoutes = [
       {
         path: 'roles',
         component: () => import('@/views/index'),
+        redirect: 'list',
         meta: { title: '角色管理' },
         children: [
           {
             path: 'list',
-            component: () => import('@/views/roles/list'),
-            name: 'RoleList',
+            component: () => import('@/views/users/roles/list'),
+            name: 'UserRoleList',
             meta: { title: '角色管理', breadcrumb: false }
           },
           {
             path: 'insert',
-            component: () => import('@/views/roles/edit'),
-            name: 'NewRole',
+            component: () => import('@/views/users/roles/edit'),
+            name: 'NewUserRole',
             meta: { title: '新角色', activeMenu: '/users/roles/list' },
             hidden: true
           },
           {
             path: 'edit/:id',
-            component: () => import('@/views/roles/edit'),
-            name: 'EditRole',
+            component: () => import('@/views/users/roles/edit'),
+            name: 'EditUserRole',
             meta: { title: '角色修改', activeMenu: '/users/roles/list' },
             hidden: true
           }

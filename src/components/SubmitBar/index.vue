@@ -5,7 +5,7 @@
       :style="{top:(isSticky ? stickyTop +'px' : ''),zIndex:zIndex,position:position,width:width,height:height+'px'}"
     >
       <div class="button">
-        <el-button v-if="url" size="medium" icon="el-icon-back" @click="goBack">返回</el-button>
+        <el-button v-if="backUrl" size="medium" icon="el-icon-back" @click="goBack">返回</el-button>
         <el-button size="medium" type="success" icon="el-icon-check" @click="submit">提交</el-button>
       </div>
     </div>
@@ -16,7 +16,7 @@
 export default {
   name: 'SubmitBar',
   props: {
-    url: {
+    backUrl: {
       type: String,
       default: ''
     },
@@ -53,7 +53,7 @@ export default {
   methods: {
     goBack() {
       this.$router.push({
-        path: this.url
+        path: this.backUrl
       })
     },
     submit() {
