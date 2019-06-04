@@ -141,7 +141,7 @@ export const asyncRoutes = [
     ]
   },
   {
-    path: '/media',
+    path: '/medias',
     component: Layout,
     redirect: 'noRedirect',
     name: 'Media',
@@ -149,7 +149,7 @@ export const asyncRoutes = [
     children: [
       {
         path: 'list',
-        component: () => import('@/views/dashboard/index'),
+        component: () => import('@/views/medias/index'),
         name: 'MediaList',
         meta: { title: '文件管理', breadcrumb: false }
       }
@@ -164,7 +164,7 @@ export const asyncRoutes = [
       {
         path: 'management',
         component: () => import('@/views/index'),
-        redirect: 'list',
+        redirect: '/users/management/list',
         meta: { title: '成员管理' },
         children: [
           {
@@ -192,7 +192,7 @@ export const asyncRoutes = [
       {
         path: 'roles',
         component: () => import('@/views/index'),
-        redirect: 'list',
+        redirect: '/users/roles/list',
         meta: { title: '角色管理' },
         children: [
           {
