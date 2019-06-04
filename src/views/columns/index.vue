@@ -13,7 +13,7 @@
         <el-tree
           ref="tree"
           v-loading.fullscreen="loading"
-          :data="listFilter"
+          :data="treeList"
           :props="defaultProps"
           :highlight-current="true"
           :default-expand-all="true"
@@ -25,17 +25,17 @@
           @node-click="handleNodeClick"
         >
           <span slot-scope="{ node, data }" class="custom-tree-node">
-            <span>{{ (data.id === editor.id && editor.changed)? '* ':'' }}{{ node.label }}</span>
+            <span>{{ (data.id === form.id && form.changed)? '* ':'' }}{{ node.label }}</span>
             <el-tag v-if="data.status === 0" size="mini" type="info">已隐藏</el-tag>
           </span>
         </el-tree>
       </el-col>
       <el-col :span="16" class="right-board">
-        <div v-show="!editor.show" class="empty">
+        <div v-show="!form.show" class="empty">
           <p>点击左侧“新增”按钮或树列表，可以打开栏目编辑窗口</p>
         </div>
-        <el-form v-show="editor.show" ref="editorForm" :model="editor" label-width="80px">
-          <el-tabs v-show="JSON.stringify(editor) !== '{}'" v-model="activeName">
+        <el-form v-show="form.show" ref="editorForm" :model="form" label-width="80px">
+          <el-tabs v-show="JSON.stringify(form) !== '{}'" v-model="activeName">
             <el-tab-pane label="基本信息" name="base">
               <el-form-item label="排序" class="base-order">
                 <el-button-group>
@@ -44,33 +44,36 @@
                 </el-button-group>
               </el-form-item>
               <el-form-item label="名称">
-                <el-input v-model="editor.title" @input="editorChanged" />
+                <el-input v-model="form.title" @input="handleFormChange" />
               </el-form-item>
               <el-form-item label="所属">
-                <el-select v-model="editor.fid" placeholder="请选择一个栏目" @change="editorChanged">
+                <el-select v-model="form.fid" placeholder="请选择一个栏目" @change="handleFormChange">
                   <el-option :value="0" label="一级栏目" />
+                  <recursive-option v-model="form.fid" :list="treeList" />
                 </el-select>
               </el-form-item>
               <el-form-item label="类型">
-                <el-select v-model="editor.pattern" placeholder="请选择栏目类型" @change="editorChanged">
+                <el-select v-model="form.pattern" placeholder="请选择栏目类型" @change="handleFormChange">
                   <el-option value="default" label="单页" />
                   <el-option value="list" label="列表" />
                 </el-select>
               </el-form-item>
               <el-form-item label="状态" class="base-status">
-                <el-radio-group v-model="editor.status" @change="editorChanged">
+                <el-radio-group v-model="form.status" @change="handleFormChange">
                   <el-radio :label="1">显示</el-radio>
                   <el-radio :label="0">隐藏</el-radio>
                 </el-radio-group>
               </el-form-item>
             </el-tab-pane>
-            <el-tab-pane label="页面描述" name="descript">描述详情</el-tab-pane>
+            <el-tab-pane label="页面描述" name="descript">
+              <descript-form />
+            </el-tab-pane>
           </el-tabs>
           <el-form-item class="base-button">
             <el-button type="primary" size="medium" icon="el-icon-check" @click="submit">提交</el-button>
             <el-button size="medium" icon="el-icon-close" @click="close">关闭</el-button>
             <el-button
-              v-show="editor.id"
+              v-show="form.id"
               type="danger"
               size="medium"
               icon="el-icon-delete"
@@ -84,13 +87,21 @@
 </template>
 
 <script>
+import RecursiveOption from './components/RecursiveOption'
+import DescriptForm from '@/components/UniversalForm/Descript'
+
 export default {
+  name: 'ColumnsList',
+  components: {
+    RecursiveOption,
+    DescriptForm
+  },
   data() {
     return {
       activeName: 'base',
       loading: false,
       filter: '',
-      editor: {
+      form: {
         id: 0,
         fid: 0,
         title: '',
@@ -202,22 +213,25 @@ export default {
     }
   },
   computed: {
-    listFilter() {
-      var filter = []
-      var remaining = []
+    treeList() {
+      // 根据 list 自动生成树形结构
+      var list = []
+      var remaining = [] // 剩余未分配的栏目
       this.list.map(item => {
         if (parseInt(item.fid) === 0) {
-          filter.push({ ...item })
+          list.push({ ...item })
         } else {
           remaining.push({ ...item })
         }
       })
-      filter.sort(function(a, b) {
+      // 对列表进行排序
+      list.sort(function(a, b) {
         return a.sequence - b.sequence
       })
       remaining.sort(function(a, b) {
         return a.sequence - b.sequence
       })
+      // 递归，支持无限层级
       const recursive = row => {
         if (remaining.length > 0) {
           for (const item of row) {
@@ -235,9 +249,8 @@ export default {
           }
         }
       }
-      recursive(filter)
-      // console.log(filter)
-      return filter
+      recursive(list)
+      return list
     }
   },
   watch: {
@@ -258,11 +271,11 @@ export default {
       if (!value) return true
       return data.label.indexOf(value) !== -1
     },
-    editorChanged() {
-      this.editor.changed = true
+    handleFormChange() {
+      this.form.changed = true
     },
     handleNodeClick(data) {
-      const editor = {
+      const form = {
         id: data.id,
         fid: data.fid,
         title: data.label,
@@ -273,26 +286,26 @@ export default {
         show: true,
         changed: false
       }
-      if (this.editor.changed === true) {
+      if (this.form.changed === true) {
         this.$confirm('未保存的内容将会丢失, 是否继续?', '系统提示', {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
           type: 'warning'
         }).then(() => {
-          this.editor = editor
+          this.form = form
           this.activeName = 'base'
         })
       } else {
-        this.editor = editor
+        this.form = form
         this.activeName = 'base'
       }
     },
     submit() {
-      console.log(this.editor)
+      console.log(this.form)
     },
     close() {
       const reset = () => {
-        this.editor = {
+        this.form = {
           id: 0,
           fid: 0,
           title: '',
@@ -305,7 +318,7 @@ export default {
           this.$refs.tree.setCurrentKey(null)
         }, 10)
       }
-      if (this.editor.changed === true) {
+      if (this.form.changed === true) {
         this.$confirm('未保存的内容将会丢失, 是否继续?', '系统提示', {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
@@ -318,7 +331,7 @@ export default {
       }
     },
     resetForm() {
-      this.$refs.editorForm.resetFields()
+      this.$refs.formForm.resetFields()
     }
   }
 }
