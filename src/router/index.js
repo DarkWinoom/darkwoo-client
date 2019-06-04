@@ -61,46 +61,36 @@ export const constantRoutes = [
  * the routes that need to be dynamically loaded based on user roles
  */
 export const asyncRoutes = [
-
   {
-    path: '/website',
+    // 第一个栏目会有折叠bug，目前正在寻找其他解决办法
+    path: '/fixed',
+    component: () => import('@/views/index'),
+    hidden: true
+  },
+  {
+    path: '/columns',
     component: Layout,
     redirect: 'noRedirect',
-    name: 'Website',
+    name: 'Columns',
     meta: { title: '网站栏目', icon: 'tree' },
     children: [
       {
-        path: 'column',
-        component: () => import('@/views/dashboard/index'),
-        name: 'WebsiteColumn',
-        meta: { title: '栏目管理', breadcrumb: false },
-        children: [
-          {
-            path: 'list',
-            component: () => import('@/views/dashboard/index'),
-            name: 'WebsiteColumnList',
-            meta: { title: '栏目管理', noCache: true }
-          },
-          {
-            path: 'edit/:id(\\d+)',
-            component: () => import('@/views/dashboard/index'),
-            name: 'EditWebsiteColumn',
-            hidden: true,
-            meta: { title: '资料管理', noCache: true }
-          }
-        ]
+        path: 'index',
+        component: () => import('@/views/columns/index'),
+        name: 'ColumnsList',
+        meta: { title: '栏目管理' }
       },
       {
         path: 'list',
         component: () => import('@/views/dashboard/index'),
-        name: 'ArticleList',
-        meta: { title: '文章列表页', noCache: true }
+        name: 'ColumnsArticleList',
+        meta: { title: '文章列表页' }
       },
       {
-        path: 'single',
+        path: 'edit',
         component: () => import('@/views/dashboard/index'),
-        name: 'EditArticle',
-        meta: { title: '详情页', noCache: true }
+        name: 'EditColumnsArticle',
+        meta: { title: '文章详情页' }
       }
     ]
   },
