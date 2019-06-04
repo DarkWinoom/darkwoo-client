@@ -1,9 +1,6 @@
 <template>
   <div class="app-container">
-    <menu-container
-      :app-link="link"
-      :batch="batch"
-    />
+    <menu-container :app-link="link" :batch="batch" />
     <el-table
       ref="mainTable"
       v-loading="loading"
@@ -30,7 +27,10 @@
       </el-table-column>
       <el-table-column label="账号信息" min-width="200">
         <template slot-scope="scope">
-          <p>{{ scope.row.nickname }} <b class="color-theme">({{ scope.row.name }})</b></p>
+          <p>
+            {{ scope.row.nickname }}
+            <b class="color-theme">({{ scope.row.name }})</b>
+          </p>
           <p v-if="scope.row.email" class="email">{{ scope.row.email }}</p>
         </template>
       </el-table-column>
@@ -48,17 +48,11 @@
       </el-table-column>
       <el-table-column label="操作" align="center" width="230">
         <template slot-scope="scope">
-          <el-button type="default" size="mini" @click="goEditor(scope.row.id)">编辑</el-button>
-          <el-button
-            v-if="!scope.row.status"
-            size="mini"
-            type="success"
-          >启用</el-button>
-          <el-button
-            v-if="scope.row.status"
-            size="mini"
-            type="info"
-          >停用</el-button>
+          <app-link :id="scope.row.id" :to="edit">
+            <el-button type="default" size="mini" class="right-fix">编辑</el-button>
+          </app-link>
+          <el-button v-if="!scope.row.status" size="mini" type="success">启用</el-button>
+          <el-button v-else size="mini" type="info">停用</el-button>
           <el-button size="mini" type="danger">删除</el-button>
         </template>
       </el-table-column>
@@ -68,11 +62,13 @@
 <script>
 import { formatTime } from '@/utils/index'
 import MenuContainer from '@/components/MenuContainer'
+import AppLink from '@/components/AppLink'
 
 export default {
   name: 'UserList',
   components: {
-    MenuContainer
+    MenuContainer,
+    AppLink
   },
   filters: {
     formatTime(value) {
@@ -82,8 +78,9 @@ export default {
   data() {
     return {
       loading: true,
+      edit: 'EditUser',
       link: {
-        url: '/users/management/insert',
+        route: 'NewUser',
         name: '新成员'
       },
       batch: {
@@ -125,11 +122,6 @@ export default {
     this.fetchList()
   },
   methods: {
-    goEditor(id) {
-      this.$router.push({
-        path: '/users/management/edit/' + id
-      })
-    },
     fetchList() {
       this.loading = true
       setTimeout(() => {
@@ -148,9 +140,9 @@ export default {
 }
 </script>
 <style lang="scss" scoped>
-p{
+p {
   margin: 0;
-  &.email{
+  &.email {
     color: #a4a4a4;
   }
 }

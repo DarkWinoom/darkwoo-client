@@ -2,7 +2,7 @@
   <div class="menu-container">
     <div class="left-menu">
       <slot name="left-menu" />
-      <app-link v-if="appLink.name" :to="appLink.url">
+      <app-link v-if="appLink.name" :to="appLink.route">
         <el-button
           class="menu-item"
           size="small"
@@ -24,7 +24,7 @@
   </div>
 </template>
 <script>
-import AppLink from '@/layout/components/Sidebar/Link'
+import AppLink from '@/components/AppLink'
 import BatchOperation from './Batch'
 
 export default {
@@ -39,7 +39,7 @@ export default {
       type: Object,
       default() {
         return {
-          url: '',
+          route: '',
           name: ''
         }
       }

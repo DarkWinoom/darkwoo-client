@@ -8,10 +8,10 @@
       </span>
     </div>
     <div class="button">
-      <el-button size="small">删除</el-button>
-      <el-button size="small">标记为已读</el-button>
-      <el-button size="small">标记为未读</el-button>
-      <el-button size="small">全部标为已读</el-button>
+      <el-button size="mini">删除</el-button>
+      <el-button size="mini">标记为已读</el-button>
+      <el-button size="mini">标记为未读</el-button>
+      <el-button size="mini">全部标为已读</el-button>
     </div>
     <el-table
       ref="table"

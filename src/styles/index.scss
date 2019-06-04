@@ -59,9 +59,36 @@ div:focus {
   }
 }
 
-// main-container global css
+// main-container global css (customize)
+img, video, audio{
+  max-width: 100%;
+}
+
 .app-container {
   padding: 20px;
+  min-height: calc(100vh - 50px);
+}
+
+.el-button{
+  &.left-fix{
+    margin-left: 10px;
+  }
+  &.right-fix{
+    margin-right: 10px;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #eee;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 .no-padding {

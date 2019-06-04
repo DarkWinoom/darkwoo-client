@@ -99,9 +99,6 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-img, video, audio{
-  max-width: 100%;
-}
 .preview-container {
   height: 100%;
   .thumbnails {

@@ -36,7 +36,9 @@
       </el-table-column>
       <el-table-column label="操作" align="center" width="160">
         <template slot-scope="scope">
-          <el-button type="default" size="mini" @click="goEditor(scope.row.id)">编辑</el-button>
+          <app-link :id="scope.row.id" :to="edit">
+            <el-button type="default" size="mini" class="right-fix">编辑</el-button>
+          </app-link>
           <el-button size="mini" type="danger">删除</el-button>
         </template>
       </el-table-column>
@@ -45,16 +47,20 @@
 </template>
 <script>
 import MenuContainer from '@/components/MenuContainer'
+import AppLink from '@/components/AppLink'
 
 export default {
   name: 'UserRoleList',
   components: {
-    MenuContainer
+    MenuContainer,
+    AppLink
   },
   data() {
     return {
+      loading: true,
+      edit: 'EditUserRole',
       link: {
-        url: '/users/roles/insert',
+        route: 'NewUserRole',
         name: '新角色'
       },
       batch: {
@@ -77,7 +83,6 @@ export default {
           sequence: 0
         }
       ],
-      loading: true,
       multipleSelection: []
     }
   },
@@ -85,11 +90,6 @@ export default {
     this.fetchList()
   },
   methods: {
-    goEditor(id) {
-      this.$router.push({
-        path: '/users/roles/edit/' + id
-      })
-    },
     fetchList() {
       this.loading = true
       setTimeout(() => {
