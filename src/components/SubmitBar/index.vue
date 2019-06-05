@@ -29,7 +29,7 @@ export default {
     },
     stickyTop: {
       type: Number,
-      default: 84
+      default: 50
     },
     zIndex: {
       type: Number,

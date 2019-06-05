@@ -124,16 +124,47 @@ export const asyncRoutes = [
     meta: { title: '会员中心', icon: 'user' },
     children: [
       {
-        path: 'index',
-        component: () => import('@/views/dashboard/index'),
-        name: 'MembersIndex',
-        meta: { title: '会员管理' }
+        path: 'management',
+        component: () => import('@/views/index'),
+        redirect: '/members/management/index',
+        name: 'MembersManagement',
+        meta: { title: '会员管理' },
+        children: [
+          {
+            path: 'index',
+            component: () => import('@/views/members/management/index'),
+            name: 'MembersManagementIndex',
+            meta: { title: '会员管理', breadcrumb: false }
+          },
+          {
+            path: 'edit/:id',
+            component: () => import('@/views/members/management/edit'),
+            name: 'MembersManagementEdit',
+            meta: { title: '会员修改', activeMenu: '/members/management/index' },
+            hidden: true
+          }
+        ]
       },
       {
         path: 'orders',
-        component: () => import('@/views/dashboard/index'),
+        component: () => import('@/views/index'),
         name: 'MembersOrders',
-        meta: { title: '客服工单' }
+        meta: { title: '客服工单' },
+        children: [
+          {
+            path: 'index',
+            component: () => import('@/views/members/orders/index'),
+            name: 'MembersOrderstIndex',
+            meta: { title: '客服工单', breadcrumb: false }
+          },
+          {
+            path: 'edit/:id',
+            component: () => import('@/views/members/orders/edit'),
+            name: 'MembersOrdersEdit',
+            meta: { title: '工单查看', activeMenu: '/members/orders/index' },
+            hidden: true
+          }
+        ]
       }
     ]
   },
