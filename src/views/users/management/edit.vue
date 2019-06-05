@@ -1,6 +1,6 @@
 <template>
   <div class="app-container no-padding">
-    <submit-bar :back-url="back" @submit="submit" />
+    <submit-bar :back-route="backRoute" @submit="submit" />
     <el-form
       ref="form"
       v-loading="loading"
@@ -48,31 +48,13 @@
           </el-form-item>
           <el-form-item label="状态">
             <el-radio-group v-model="ruleForm.status" size="medium">
-              <el-radio border label="1">正常使用</el-radio>
+              <el-radio border label="1">启用</el-radio>
               <el-radio border label="0">停用</el-radio>
             </el-radio-group>
           </el-form-item>
         </el-col>
         <el-col :sm="8">
-          <el-card class="box-card" shadow="always">
-            <div slot="header" class="header">
-              <span class="required">用户头像</span>
-              <div class="editor">
-                <el-button type="text" icon="el-icon-edit-outline">更换</el-button>
-                <el-button type="text" icon="el-icon-close">移除</el-button>
-              </div>
-            </div>
-            <div class="text item">
-              <div v-if="avatar" class="thumbnails">
-                <img :src="avatar" alt>
-              </div>
-              <div class="tips">
-                <p>推荐尺寸：120像素 × 120像素</p>
-                <p class="color-info">（96像素分辨率）</p>
-                <p class="color-warning bold">请选择相同或等比例尺寸的图片文件</p>
-              </div>
-            </div>
-          </el-card>
+          <thumbnail v-model="avatar" :required="true" title="用户头像" />
         </el-col>
       </el-row>
     </el-form>
@@ -80,15 +62,16 @@
 </template>
 <script>
 import SubmitBar from '@/components/SubmitBar'
+import Thumbnail from '@/components/Uploader/Thumbnail'
 
 export default {
-  components: { SubmitBar },
+  components: { SubmitBar, Thumbnail },
   data() {
     return {
+      backRoute: 'UsersManagementIndex',
       loading: true,
       roles: [],
       id: undefined,
-      back: '/users/management/list',
       avatar:
         'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif',
       ruleForm: {
@@ -237,43 +220,6 @@ export default {
   padding: 20px;
   .el-radio {
     margin-right: 0;
-  }
-  .box-card {
-    .header {
-      position: relative;
-      .required {
-        &:before {
-          content: "*";
-          color: #f56c6c;
-          margin-right: 4px;
-        }
-      }
-      .editor {
-        position: absolute;
-        top: 50%;
-        right: 0;
-        transform: translateY(-50%);
-      }
-    }
-    .item {
-      position: relative;
-      text-align: center;
-      .thumbnails {
-        padding-bottom: 15px;
-        img {
-          display: inline-block;
-          max-width: 100%;
-          cursor: pointer;
-        }
-      }
-      .tips {
-        font-size: 14px;
-        p {
-          margin: 0;
-          line-height: 1.9;
-        }
-      }
-    }
   }
 }
 </style>

@@ -5,7 +5,9 @@
       :style="{top:(isSticky ? stickyTop +'px' : ''),zIndex:zIndex,position:position,width:width,height:height+'px'}"
     >
       <div class="button">
-        <el-button v-if="backUrl" size="medium" icon="el-icon-back" @click="goBack">返回</el-button>
+        <app-link v-if="backRoute" :to="backRoute">
+          <el-button size="medium" icon="el-icon-back">返回</el-button>
+        </app-link>
         <el-button size="medium" type="success" icon="el-icon-check" @click="submit">提交</el-button>
       </div>
     </div>
@@ -13,10 +15,15 @@
 </template>
 
 <script>
+import AppLink from '@/components/AppLink'
+
 export default {
   name: 'SubmitBar',
+  components: {
+    AppLink
+  },
   props: {
-    backUrl: {
+    backRoute: {
       type: String,
       default: ''
     },
@@ -51,11 +58,6 @@ export default {
     window.removeEventListener('resize', this.handleResize)
   },
   methods: {
-    goBack() {
-      this.$router.push({
-        path: this.backUrl
-      })
-    },
     submit() {
       this.$emit('submit')
     },

@@ -1,6 +1,6 @@
 <template>
   <div class="app-container">
-    <el-row :gutter="20">
+    <el-row :gutter="20" class="columns-tree">
       <el-col :span="8" class="left-board">
         <div class="button">
           <el-button icon="el-icon-plus">新增</el-button>
@@ -26,13 +26,16 @@
         >
           <span slot-scope="{ node, data }" class="custom-tree-node">
             <span>{{ (data.id === form.id && form.changed)? '* ':'' }}{{ node.label }}</span>
-            <el-tag v-if="data.status === 0" size="mini" type="info">已隐藏</el-tag>
+            <el-tag v-show="data.status === 0" size="mini" type="info">已隐藏</el-tag>
           </span>
         </el-tree>
       </el-col>
       <el-col :span="16" class="right-board">
         <div v-show="!form.show" class="empty">
-          <p>点击左侧“新增”按钮或树列表，可以打开栏目编辑窗口</p>
+          <p>
+            <svg-icon icon-class="tree" style="font-size:36px" />
+          </p>
+          <p>点击左侧“新增”按钮或列表中的栏目名称，可以打开栏目编辑窗口</p>
         </div>
         <el-form v-show="form.show" ref="editorForm" :model="form" label-width="80px">
           <el-tabs v-show="JSON.stringify(form) !== '{}'" v-model="activeName">
@@ -88,10 +91,10 @@
 
 <script>
 import RecursiveOption from './components/RecursiveOption'
-import DescriptForm from '@/components/UniversalForm/Descript'
+import DescriptForm from './components/UniversalForm/Descript'
 
 export default {
-  name: 'ColumnsList',
+  name: 'ColumnsManagementIndex',
   components: {
     RecursiveOption,
     DescriptForm
@@ -338,13 +341,15 @@ export default {
 </script>
 
 <style lang="scss">
-.left-board .button input {
-  border-radius: 0;
+.columns-tree {
+  .left-board .button input {
+    border-radius: 0;
+  }
 }
 </style>
 
 <style lang="scss" scoped>
-.el-row {
+.el-row.columns-tree {
   border: 1px solid #ebeef5;
   .left-board {
     padding: 0 !important;

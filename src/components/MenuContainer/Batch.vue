@@ -2,10 +2,10 @@
   <div v-if="value" class="batch">
     <span>批量操作：</span>
     <el-button-group>
-      <el-button v-if="sequence" type="default" size="small">{{ sequence }}</el-button>
-      <el-button v-if="enable" type="success" size="small">{{ enable }}</el-button>
-      <el-button v-if="disable" type="info" size="small">{{ disable }}</el-button>
-      <el-button v-if="remove" type="danger" size="small">{{ remove }}</el-button>
+      <el-button v-show="sequence" type="default" size="small">{{ sequence }}</el-button>
+      <el-button v-show="enable" type="success" size="small">{{ enable }}</el-button>
+      <el-button v-show="disable" type="info" size="small">{{ disable }}</el-button>
+      <el-button v-show="remove" type="danger" size="small">{{ remove }}</el-button>
     </el-button-group>
   </div>
 </template>

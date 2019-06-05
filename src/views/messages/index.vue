@@ -93,6 +93,7 @@ import { formatTime } from '@/utils/index'
 import Pagination from '@/components/Pagination'
 
 export default {
+  name: 'MessagesIndex',
   components: {
     Pagination
   },

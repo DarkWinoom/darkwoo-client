@@ -59,7 +59,7 @@ import { formatTime } from '@/utils/index'
 import MenuContainer from '@/components/MenuContainer'
 import Pagination from '@/components/Pagination'
 export default {
-  name: 'UserLogs',
+  name: 'UsersLogs',
   components: {
     MenuContainer,
     Pagination

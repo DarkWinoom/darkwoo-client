@@ -50,7 +50,7 @@ import MenuContainer from '@/components/MenuContainer'
 import AppLink from '@/components/AppLink'
 
 export default {
-  name: 'UserRoleList',
+  name: 'UserRolesIndex',
   components: {
     MenuContainer,
     AppLink
@@ -58,9 +58,9 @@ export default {
   data() {
     return {
       loading: true,
-      edit: 'EditUserRole',
+      edit: 'UserRolesEdit',
       link: {
-        route: 'NewUserRole',
+        route: 'UserRolesCreate',
         name: '新角色'
       },
       batch: {

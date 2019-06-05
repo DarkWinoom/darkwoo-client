@@ -39,7 +39,7 @@ export const constantRoutes = [
 
   {
     path: '/404',
-    component: () => import('@/views/404'),
+    component: () => import('@/views/error-page/404'),
     hidden: true
   },
 
@@ -52,6 +52,19 @@ export const constantRoutes = [
       name: 'Dashboard',
       component: () => import('@/views/dashboard/index'),
       meta: { title: '控制台', icon: 'dashboard' }
+    }]
+  },
+
+  {
+    path: '/profile',
+    component: Layout,
+    redirect: 'noRedirect',
+    children: [{
+      path: 'index',
+      name: 'Profile',
+      component: () => import('@/views/dashboard/index'),
+      meta: { title: '个人中心' },
+      hidden: true
     }]
   }
 ]
@@ -75,22 +88,31 @@ export const asyncRoutes = [
     meta: { title: '网站栏目', icon: 'tree' },
     children: [
       {
-        path: 'index',
-        component: () => import('@/views/columns/index'),
-        name: 'ColumnsList',
-        meta: { title: '栏目管理' }
+        path: 'management',
+        component: () => import('@/views/index'),
+        redirect: '/columns/management/index',
+        name: 'ColumnsManagement',
+        meta: { title: '栏目管理' },
+        children: [
+          {
+            path: 'index',
+            component: () => import('@/views/columns/management/index'),
+            name: 'ColumnsManagementIndex',
+            meta: { title: '栏目管理', breadcrumb: false }
+          }
+        ]
       },
       {
-        path: 'list',
+        path: 'article-list',
         component: () => import('@/views/dashboard/index'),
         name: 'ColumnsArticleList',
-        meta: { title: '文章列表页' }
+        meta: { title: '列表页（demo）' }
       },
       {
-        path: 'edit',
+        path: 'article-edit',
         component: () => import('@/views/dashboard/index'),
-        name: 'EditColumnsArticle',
-        meta: { title: '文章详情页' }
+        name: 'ColumnsArticleEdit',
+        meta: { title: '详情页（demo）' }
       }
     ]
   },
@@ -102,15 +124,15 @@ export const asyncRoutes = [
     meta: { title: '会员中心', icon: 'user' },
     children: [
       {
-        path: 'list',
+        path: 'index',
         component: () => import('@/views/dashboard/index'),
-        name: 'MembersList',
+        name: 'MembersIndex',
         meta: { title: '会员管理' }
       },
       {
-        path: 'reply',
+        path: 'orders',
         component: () => import('@/views/dashboard/index'),
-        name: 'ReplyMembers',
+        name: 'MembersOrders',
         meta: { title: '客服工单' }
       }
     ]
@@ -119,13 +141,13 @@ export const asyncRoutes = [
     path: '/messages',
     component: Layout,
     redirect: 'noRedirect',
-    name: 'Message',
+    name: 'Messages',
     meta: { title: '在线留言', icon: 'email' },
     children: [
       {
-        path: 'list',
+        path: 'index',
         component: () => import('@/views/messages/index'),
-        name: 'MessageList',
+        name: 'MessagesIndex',
         meta: { title: '在线留言', breadcrumb: false }
       }
     ]
@@ -134,13 +156,13 @@ export const asyncRoutes = [
     path: '/medias',
     component: Layout,
     redirect: 'noRedirect',
-    name: 'Media',
+    name: 'Medias',
     meta: { title: '文件管理', icon: 'zip' },
     children: [
       {
-        path: 'list',
+        path: 'index',
         component: () => import('@/views/medias/index'),
-        name: 'MediaList',
+        name: 'MediasIndex',
         meta: { title: '文件管理', breadcrumb: false }
       }
     ]
@@ -149,32 +171,34 @@ export const asyncRoutes = [
     path: '/users',
     component: Layout,
     redirect: 'noRedirect',
+    name: 'Users',
     meta: { title: '系统用户', icon: 'password' },
     children: [
       {
         path: 'management',
         component: () => import('@/views/index'),
-        redirect: '/users/management/list',
+        redirect: '/users/management/index',
+        name: 'UsersManagement',
         meta: { title: '成员管理' },
         children: [
           {
-            path: 'list',
-            component: () => import('@/views/users/list'),
-            name: 'UserList',
+            path: 'index',
+            component: () => import('@/views/users/management/index'),
+            name: 'UsersManagementIndex',
             meta: { title: '成员管理', breadcrumb: false }
           },
           {
-            path: 'insert',
-            component: () => import('@/views/users/edit'),
-            name: 'NewUser',
-            meta: { title: '新成员', activeMenu: '/users/management/list' },
+            path: 'create',
+            component: () => import('@/views/users/management/edit'),
+            name: 'UsersManagementCreate',
+            meta: { title: '新成员', activeMenu: '/users/management/index' },
             hidden: true
           },
           {
             path: 'edit/:id',
-            component: () => import('@/views/users/edit'),
-            name: 'EditUser',
-            meta: { title: '成员修改', activeMenu: '/users/management/list' },
+            component: () => import('@/views/users/management/edit'),
+            name: 'UsersManagementEdit',
+            meta: { title: '成员修改', activeMenu: '/users/management/index' },
             hidden: true
           }
         ]
@@ -182,27 +206,27 @@ export const asyncRoutes = [
       {
         path: 'roles',
         component: () => import('@/views/index'),
-        redirect: '/users/roles/list',
+        redirect: '/users/roles/index',
         meta: { title: '角色管理' },
         children: [
           {
-            path: 'list',
-            component: () => import('@/views/users/roles/list'),
-            name: 'UserRoleList',
+            path: 'index',
+            component: () => import('@/views/users/roles/index'),
+            name: 'UserRolesIndex',
             meta: { title: '角色管理', breadcrumb: false }
           },
           {
-            path: 'insert',
+            path: 'create',
             component: () => import('@/views/users/roles/edit'),
-            name: 'NewUserRole',
-            meta: { title: '新角色', activeMenu: '/users/roles/list' },
+            name: 'UserRolesCreate',
+            meta: { title: '新角色', activeMenu: '/users/roles/index' },
             hidden: true
           },
           {
             path: 'edit/:id',
             component: () => import('@/views/users/roles/edit'),
-            name: 'EditUserRole',
-            meta: { title: '角色修改', activeMenu: '/users/roles/list' },
+            name: 'UserRolesEdit',
+            meta: { title: '角色修改', activeMenu: '/users/roles/index' },
             hidden: true
           }
         ]
@@ -210,7 +234,7 @@ export const asyncRoutes = [
       {
         path: 'logs',
         component: () => import('@/views/users/logs'),
-        name: 'UserLogs',
+        name: 'UsersLogs',
         meta: { title: '登录日志' }
       }
     ]
@@ -245,19 +269,6 @@ export const asyncRoutes = [
         component: () => import('@/views/dashboard/index'),
         name: 'SystemHelp',
         meta: { title: '帮助中心' }
-      }
-    ]
-  },
-
-  {
-    path: '/icon',
-    component: Layout,
-    children: [
-      {
-        path: 'index',
-        component: () => import('@/views/icons/index'),
-        name: 'Icons',
-        meta: { title: '图标查看（demo）', icon: 'icon', noCache: true }
       }
     ]
   },

@@ -1,10 +1,10 @@
 <template>
-  <div v-if="preview.name" class="preview-container">
+  <div v-show="preview.name" class="preview-container">
     <div v-show="thumbDisplay" class="thumbnails">
       <div class="box">
-        <img v-if="mimeCheck('image')" :src="preview.path" alt>
-        <video v-if="mimeCheck('video')" :src="preview.path" class="control" controls />
-        <audio v-if="mimeCheck('audio')" :src="preview.path" class="control" controls />
+        <img v-show="mimeCheck('image')" :src="preview.path" alt>
+        <video v-show="mimeCheck('video')" :src="preview.path" class="control" controls />
+        <audio v-show="mimeCheck('audio')" :src="preview.path" class="control" controls />
       </div>
     </div>
     <div class="content">
@@ -26,9 +26,9 @@
                 <a @click="handleClick">点击访问</a>
               </td>
             </tr>
-            <tr data-control="last-modified" class>
+            <tr>
               <th>修改</th>
-              <td data-label="last-modified">{{ preview.time | formatTime }}</td>
+              <td>{{ preview.time | formatTime }}</td>
             </tr>
           </tbody>
         </table>
@@ -41,6 +41,7 @@
 import { formatTime } from '@/utils'
 
 export default {
+  name: 'MediasPreview',
   filters: {
     formatTime(value) {
       return value ? formatTime(value, '{y}/{m}/{d} {h}:{i}') : '-'

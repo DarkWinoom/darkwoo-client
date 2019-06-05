@@ -1,6 +1,6 @@
 <template>
   <div class="app-container no-padding">
-    <submit-bar :back-url="back" @submit="submit" />
+    <submit-bar :back-route="backRoute" @submit="submit" />
     <div class="form-container">
       <el-form
         ref="form"
@@ -23,7 +23,7 @@
             </el-form-item>
           </el-tab-pane>
           <el-tab-pane label="系统权限" name="system">
-            <purview-table
+            <permission-table
               :data="roles.system"
               :form="form.roles.system"
               :expand-all="true"
@@ -32,7 +32,7 @@
             />
           </el-tab-pane>
           <el-tab-pane label="栏目权限" name="column">
-            <purview-table
+            <permission-table
               :data="roles.column"
               :form="form.roles.column"
               :expand-all="true"
@@ -47,15 +47,15 @@
 </template>
 <script>
 import SubmitBar from '@/components/SubmitBar'
-import purviewTable from './components/purviewTable'
+import PermissionTable from './components/Permission'
 
 export default {
-  components: { SubmitBar, purviewTable },
+  components: { SubmitBar, PermissionTable },
   data() {
     return {
+      backRoute: 'UserRolesIndex',
       loading: true,
       id: undefined,
-      back: '/users/roles/list',
       activeName: 'base',
       roles: {
         system: [

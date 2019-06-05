@@ -63,7 +63,7 @@
 import treeToArray from './eval'
 
 export default {
-  name: 'TreeTable',
+  name: 'UsersRolesPermission',
   props: {
     data: {
       type: [Array, Object],

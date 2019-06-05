@@ -1,8 +1,8 @@
-@import './variables.scss';
-@import './mixin.scss';
-@import './transition.scss';
-@import './element-ui.scss';
-@import './sidebar.scss';
+@import "./variables.scss";
+@import "./mixin.scss";
+@import "./transition.scss";
+@import "./element-ui.scss";
+@import "./sidebar.scss";
 
 body {
   height: 100%;
@@ -60,7 +60,9 @@ div:focus {
 }
 
 // main-container global css (customize)
-img, video, audio{
+img,
+video,
+audio {
   max-width: 100%;
 }
 
@@ -69,11 +71,11 @@ img, video, audio{
   min-height: calc(100vh - 50px);
 }
 
-.el-button{
-  &.left-fix{
+.el-button {
+  &.left-fix {
     margin-left: 10px;
   }
-  &.right-fix{
+  &.right-fix {
     margin-right: 10px;
   }
 }
@@ -91,6 +93,10 @@ img, video, audio{
   background: transparent;
 }
 
+.el-popup-parent--hidden .fixed-header {
+  padding-right: 5px!important;
+}
+
 .no-padding {
   padding: 0 !important;
 }
@@ -99,6 +105,12 @@ img, video, audio{
   margin: 0 !important;
 }
 
-input{
-  text-align: inherit
+input {
+  text-align: inherit;
+}
+
+@media (max-width: 991px) {
+  .el-popup-parent--hidden .fixed-header {
+    padding-right: 0!important;
+  }
 }

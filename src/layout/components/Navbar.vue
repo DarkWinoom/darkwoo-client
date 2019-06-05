@@ -19,23 +19,23 @@
           <i class="el-icon-caret-bottom" />
         </div>
         <el-dropdown-menu slot="dropdown" class="user-dropdown">
-          <router-link to="/">
-            <el-dropdown-item>
-              首页
-            </el-dropdown-item>
-          </router-link>
-          <router-link to="/">
+          <app-link to="Profile">
             <el-dropdown-item>
               个人中心
             </el-dropdown-item>
-          </router-link>
-          <router-link to="/">
+          </app-link>
+          <app-link to="Dashboard">
             <el-dropdown-item>
-              密码重置
+              首页
             </el-dropdown-item>
-          </router-link>
+          </app-link>
+          <app-link to="SystemSetting">
+            <el-dropdown-item>
+              帮助中心
+            </el-dropdown-item>
+          </app-link>
           <el-dropdown-item divided>
-            <span style="display:block;" @click="handleLogout">安全退出</span>
+            <span style="display:block;" @click="handleLogout">退出登录</span>
           </el-dropdown-item>
         </el-dropdown-menu>
       </el-dropdown>
@@ -45,6 +45,7 @@
 
 <script>
 import { mapGetters } from 'vuex'
+import AppLink from '@/components/AppLink'
 import Breadcrumb from '@/components/Breadcrumb'
 import Hamburger from '@/components/Hamburger'
 import ErrorLog from '@/components/ErrorLog'
@@ -53,6 +54,7 @@ import Search from '@/components/HeaderSearch'
 
 export default {
   components: {
+    AppLink,
     Breadcrumb,
     Hamburger,
     ErrorLog,

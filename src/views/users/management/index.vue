@@ -31,7 +31,7 @@
             {{ scope.row.nickname }}
             <b class="color-theme">({{ scope.row.name }})</b>
           </p>
-          <p v-if="scope.row.email" class="email">{{ scope.row.email }}</p>
+          <p v-show="scope.row.email" class="email">{{ scope.row.email }}</p>
         </template>
       </el-table-column>
       <el-table-column :sortable="true" label="最后登陆" align="center" width="150">
@@ -65,7 +65,7 @@ import MenuContainer from '@/components/MenuContainer'
 import AppLink from '@/components/AppLink'
 
 export default {
-  name: 'UserList',
+  name: 'UsersManagementIndex',
   components: {
     MenuContainer,
     AppLink
@@ -78,9 +78,9 @@ export default {
   data() {
     return {
       loading: true,
-      edit: 'EditUser',
+      edit: 'UsersManagementEdit',
       link: {
-        route: 'NewUser',
+        route: 'UsersManagementCreate',
         name: '新成员'
       },
       batch: {

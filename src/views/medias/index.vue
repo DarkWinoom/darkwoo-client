@@ -42,7 +42,7 @@
           </el-table-column>
           <el-table-column :sortable="true" prop="time" label="修改时间" width="180">
             <template slot-scope="scope">
-              <i v-if="scope.row.time" class="el-icon-time" />
+              <i v-show="scope.row.time" class="el-icon-time" />
               <span class="time">{{ scope.row.time | formatTime }}</span>
             </template>
           </el-table-column>
@@ -62,7 +62,7 @@ import { formatTime } from '@/utils'
 import Preview from './components/Preview'
 
 export default {
-  name: 'Medias',
+  name: 'MediasIndex',
   components: {
     Preview
   },
