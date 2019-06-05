@@ -297,7 +297,7 @@ export const asyncRoutes = [
       },
       {
         path: 'help',
-        component: () => import('@/views/dashboard/index'),
+        component: () => import('@/views/system/help'),
         name: 'SystemHelp',
         meta: { title: '帮助中心' }
       }
