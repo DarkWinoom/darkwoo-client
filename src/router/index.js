@@ -104,7 +104,7 @@ export const asyncRoutes = [
       },
       {
         path: 'article-list',
-        component: () => import('@/views/dashboard/index'),
+        component: () => import('@/views/columns/article/list'),
         name: 'ColumnsArticleList',
         meta: { title: '列表页（demo）' }
       },

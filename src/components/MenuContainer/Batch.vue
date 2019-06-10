@@ -41,4 +41,10 @@ export default {
   }
 }
 </script>
+<style lang="scss" scoped>
+.batch{
+  display: inline-block;
+  margin-left: 15px;
+}
+</style>
 

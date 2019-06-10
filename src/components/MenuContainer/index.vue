@@ -1,7 +1,6 @@
 <template>
   <div class="menu-container">
     <div class="left-menu">
-      <slot name="left-menu" />
       <app-link v-if="appLink.name" :to="appLink.route">
         <el-button
           class="menu-item"
@@ -10,8 +9,14 @@
           icon="el-icon-plus"
         >{{ appLink.name }}</el-button>
       </app-link>
+      <div class="inline-block">
+        <slot name="left-menu" />
+      </div>
     </div>
     <div class="right-menu">
+      <div class="inline-block">
+        <slot name="right-menu" />
+      </div>
       <batch-operation
         v-model="hasBatch"
         :sequence="batch.sequence"
@@ -19,7 +24,6 @@
         :disable="batch.disable"
         :remove="batch.delete"
       />
-      <slot name="right-menu" />
     </div>
   </div>
 </template>
@@ -78,6 +82,10 @@ export default {
 .menu-container {
   font-size: 15px;
   clear: both;
+
+  .inline-block{
+    display: inline-block;
+  }
 
   .left-menu {
     float: left;
