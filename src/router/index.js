@@ -106,13 +106,13 @@ export const asyncRoutes = [
         path: 'article-list',
         component: () => import('@/views/columns/article/list'),
         name: 'ColumnsArticleList',
-        meta: { title: '列表页（demo）' }
+        meta: { title: '列表页示例' }
       },
       {
         path: 'article-edit',
-        component: () => import('@/views/dashboard/index'),
+        component: () => import('@/views/columns/article/edit'),
         name: 'ColumnsArticleEdit',
-        meta: { title: '详情页（demo）' }
+        meta: { title: '详情页示例' }
       }
     ]
   },
@@ -281,13 +281,13 @@ export const asyncRoutes = [
         path: 'task',
         component: () => import('@/views/dashboard/index'),
         name: 'SystemTask',
-        meta: { title: '计划任务' }
+        meta: { title: '计划任务（未制作）' }
       },
       {
         path: 'template',
         component: () => import('@/views/dashboard/index'),
         name: 'SystemTemplate',
-        meta: { title: '模板管理' }
+        meta: { title: '模板管理（未制作）' }
       },
       {
         path: 'setting',

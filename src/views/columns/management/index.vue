@@ -91,7 +91,7 @@
 
 <script>
 import RecursiveOption from './components/RecursiveOption'
-import DescriptForm from './components/UniversalForm/Descript'
+import DescriptForm from '../article/components/UniversalForm/Descript'
 
 export default {
   name: 'ColumnsManagementIndex',

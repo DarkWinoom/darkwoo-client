@@ -34,19 +34,23 @@
       <el-col :sm="10">
         <el-card class="box-card" shadow="always">
           <div slot="header" class="header">
-            <span>不要追踪此页面</span>
+            <span>不追踪页面</span>
           </div>
           <div class="text item">
             <el-switch
               v-model="pageFollow"
               active-color="#F56C6C"
               inactive-color="#67C23A"
-              active-text="是"
-              inactive-text="否"
+              active-text="开启"
+              inactive-text="关闭"
             />
-            <div v-show="pageFollow" class="tips text-left">
-              <p>请注意！搜索引擎将不会追踪当前页面中的链接地址</p>
-              <p>同时也不会收录页面</p>
+            <div v-if="pageFollow" class="tips danger text-left">
+              <p>选择开启“不追踪页面”</p>
+              <p>搜索引擎将不会收录当前页面，也不会继续追踪页面中的链接地址</p>
+            </div>
+            <div v-else class="tips text-left">
+              <p>选择关闭“不追踪页面”</p>
+              <p>搜索引擎将会正常收录页面与页面中的链接地址</p>
             </div>
           </div>
         </el-card>
@@ -70,13 +74,26 @@ export default {
   margin-bottom: 20px;
 }
 .tips {
-  color: #f56c6c;
+  color: #67C23A;
   font-weight: bold;
   margin-top: 15px;
   p {
     line-height: 1.9;
     font-size: 14px;
     margin: 0;
+  }
+  &.danger{
+    color: #F56C6C;
+  }
+}
+.form-tips {
+  font-size: 14px;
+  color: #909399;
+  margin-top: 10px;
+  line-height: 1.5;
+
+  &.inline {
+    display: inline-block;
   }
 }
 </style>

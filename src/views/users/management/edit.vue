@@ -4,7 +4,7 @@
     <el-form
       ref="form"
       v-loading="loading"
-      :model="ruleForm"
+      :model="form"
       :rules="rules"
       class="form-container"
       status-icon
@@ -13,41 +13,41 @@
       <el-row :gutter="20">
         <el-col :sm="16">
           <el-form-item label="账号" prop="passport">
-            <el-input v-model="ruleForm.passport" placeholder="登录的账号名" auto-complete="off" />
+            <el-input v-model="form.passport" placeholder="登录的账号名" auto-complete="off" />
           </el-form-item>
           <el-form-item label="邮箱" prop="email">
-            <el-input v-model="ruleForm.email" placeholder="可用于登录和账号找回，请真实填写" />
+            <el-input v-model="form.email" placeholder="可用于登录和账号找回，请真实填写" />
           </el-form-item>
           <el-form-item label="密码" prop="password">
             <el-col :span="12" style="padding-left:0">
               <el-input
-                v-model="ruleForm.password"
+                v-model="form.password"
                 :placeholder="isEdit? '留空不会修改原密码':'登录密码'"
                 auto-complete="off"
                 show-password
               />
             </el-col>
             <el-col :span="12" style="padding-right:0">
-              <el-input v-model="ruleForm.confirm" placeholder="再次输入密码" show-password />
+              <el-input v-model="form.confirm" placeholder="再次输入密码" show-password />
             </el-col>
           </el-form-item>
           <el-form-item label="角色" prop="roles_id">
-            <el-select v-model="ruleForm.roles_id" placeholder="请选择一个职责角色">
+            <el-select v-model="form.roles_id" placeholder="请选择一个职责角色">
               <el-option v-for="item in roles" :key="item.id" :label="item.name" :value="item.id" />
             </el-select>
-            <el-button v-if="ruleForm.roles_id">权限预览</el-button>
+            <el-button v-if="form.roles_id">权限预览</el-button>
           </el-form-item>
           <el-form-item label="昵称" prop="nickname">
-            <el-input v-model="ruleForm.nickname" placeholder="显示的用户名称" />
+            <el-input v-model="form.nickname" placeholder="显示的用户名称" />
           </el-form-item>
           <el-form-item label="手机" prop="phone">
-            <el-input v-model="ruleForm.phone" placeholder="常用的手机号码" />
+            <el-input v-model="form.phone" placeholder="常用的手机号码" />
           </el-form-item>
           <el-form-item label="序号" prop="sequence">
-            <el-input v-model.number="ruleForm.sequence" auto-complete="off" />
+            <el-input v-model.number="form.sequence" auto-complete="off" />
           </el-form-item>
           <el-form-item label="状态">
-            <el-radio-group v-model="ruleForm.status" size="medium">
+            <el-radio-group v-model="form.status" size="medium">
               <el-radio border label="1">启用</el-radio>
               <el-radio border label="0">停用</el-radio>
             </el-radio-group>
@@ -62,7 +62,7 @@
 </template>
 <script>
 import SubmitBar from '@/components/SubmitBar'
-import Thumbnail from '@/components/Uploader/Thumbnail'
+import Thumbnail from '@/components/Thumbnail'
 
 export default {
   components: { SubmitBar, Thumbnail },
@@ -74,7 +74,7 @@ export default {
       id: undefined,
       avatar:
         'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif',
-      ruleForm: {
+      form: {
         roles_id: '',
         passport: '',
         password: '',
@@ -101,9 +101,9 @@ export default {
               if (value) {
                 if (value.length < 5 || value.length > 20) {
                   callback(new Error('密码在5-20字符之间'))
-                } else if (!this.ruleForm.confirm) {
+                } else if (!this.form.confirm) {
                   callback(new Error('请输入确认密码'))
-                } else if (value !== this.ruleForm.confirm) {
+                } else if (value !== this.form.confirm) {
                   callback(new Error('两次输入密码不一致'))
                 } else {
                   callback()
@@ -185,12 +185,12 @@ export default {
   },
   methods: {
     handleChangeAvatar(avatar_id) {
-      this.ruleForm.avatar = avatar_id
+      this.form.avatar = avatar_id
     },
     submit() {
       this.$refs['form'].validate(valid => {
         if (valid) {
-          if (!this.ruleForm.avatar) {
+          if (!this.form.avatar) {
             this.$message.error('请选择一张图片作为用户头像')
           } else {
             this.$confirm('确定提交吗?', '系统提示', {

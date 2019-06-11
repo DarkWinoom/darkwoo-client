@@ -21,7 +21,7 @@
 </template>
 <script>
 export default {
-  name: 'UploadThumbnail',
+  name: 'Thumbnail',
   props: {
     value: {
       // 默认显示的头像

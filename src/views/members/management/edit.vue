@@ -4,7 +4,7 @@
     <el-form
       ref="form"
       v-loading="loading"
-      :model="ruleForm"
+      :model="form"
       :rules="rules"
       class="form-container"
       status-icon
@@ -13,24 +13,24 @@
       <el-row :gutter="20">
         <el-col :sm="16">
           <el-form-item label="账号" prop="passport">
-            <el-input v-model="ruleForm.passport" placeholder="用户的账号名" auto-complete="off" />
+            <el-input v-model="form.passport" placeholder="用户的账号名" auto-complete="off" />
           </el-form-item>
           <el-form-item label="邮箱" prop="email">
-            <el-input v-model="ruleForm.email" placeholder="可用于登录和账号找回" />
+            <el-input v-model="form.email" placeholder="可用于登录和账号找回" />
           </el-form-item>
           <el-form-item label="密码" prop="password">
             <el-input
-              v-model="ruleForm.password"
+              v-model="form.password"
               placeholder="留空不会修改原密码"
               auto-complete="off"
               show-password
             />
           </el-form-item>
           <el-form-item label="手机" prop="phone">
-            <el-input v-model="ruleForm.phone" placeholder="用户的手机号码" />
+            <el-input v-model="form.phone" placeholder="用户的手机号码" />
           </el-form-item>
           <el-form-item label="状态">
-            <el-radio-group v-model="ruleForm.status" size="medium">
+            <el-radio-group v-model="form.status" size="medium">
               <el-radio border label="1">启用</el-radio>
               <el-radio border label="0">停用</el-radio>
             </el-radio-group>
@@ -45,7 +45,7 @@
 </template>
 <script>
 import SubmitBar from '@/components/SubmitBar'
-import Thumbnail from '@/components/Uploader/Thumbnail'
+import Thumbnail from '@/components/Thumbnail'
 
 export default {
   components: { SubmitBar, Thumbnail },
@@ -56,7 +56,7 @@ export default {
       id: undefined,
       avatar:
         'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif',
-      ruleForm: {
+      form: {
         passport: '',
         password: '',
         avatar: 0,
@@ -116,7 +116,7 @@ export default {
     submit() {
       this.$refs['form'].validate(valid => {
         if (valid) {
-          if (!this.ruleForm.avatar) {
+          if (!this.form.avatar) {
             this.$message.error('请选择一张图片作为用户头像')
           } else {
             this.$confirm('确定提交吗?', '系统提示', {
