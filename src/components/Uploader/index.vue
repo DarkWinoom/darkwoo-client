@@ -11,25 +11,20 @@
     :width="width"
     top="5vh"
   >
-    <el-upload
-      class="upload-content"
-      drag
-      action="https://jsonplaceholder.typicode.com/posts/"
-      multiple
-    >
-      <i class="el-icon-upload" />
-      <div class="el-upload__text">
-        将文件拖到此处，或
-        <em>点击上传</em>
+    <div class="el-upload el-upload--text">
+      <div class="el-upload-dragger">
+        <i class="el-icon-upload" />
+        <div class="el-upload__text">点击选择或拖动文件至此处添加上传列表</div>
       </div>
-      <div slot="tip" class="el-upload__tip">
-        <p>格式限制：不限</p>
-        <p>裁剪限制：120 x 120（必须是图片且尺寸大于限制）</p>
-        <p>单文件大小限制：500 KB</p>
-      </div>
-    </el-upload>
+      <input type="file" name="file" multiple="multiple" class="el-upload__input">
+    </div>
+    <div class="el-upload__tip">
+      <p>格式限制：不限</p>
+      <p>裁剪限制：120 x 120（必须是图片且尺寸大于限制）</p>
+      <p>单文件大小限制：500 KB</p>
+    </div>
     <div slot="footer" class="dialog-footer">
-      <el-button type="primary" size="medium" icon="el-icon-upload" :loading="loading">开始上传</el-button>
+      <el-button size="medium" icon="el-icon-upload" :loading="loading">开始上传</el-button>
       <el-button icon="el-icon-delete" size="medium">清空</el-button>
       <el-button size="medium" @click="handleClose">取消</el-button>
     </div>
@@ -129,28 +124,29 @@ export default {
         this.width = '590px'
       }
     },
+    handleChangeUpload(e) {
+      console.log(e)
+    },
     handleClose() {
       this.$emit('close')
     }
   }
 }
 </script>
-<style lang="scss">
-.upload-content {
-  .el-upload {
-    display: block;
-    .el-upload-dragger {
-      width: 100%;
-    }
+<style lang="scss" scoped>
+.el-upload {
+  display: block;
+  .el-upload-dragger {
+    width: 100%;
   }
-  .el-upload__tip {
-    font-size: 14px;
-    color: #909399;
-    line-height: 28px;
-    margin-top: 10px;
-    p {
-      margin: 0;
-    }
+}
+.el-upload__tip {
+  font-size: 14px;
+  color: #909399;
+  line-height: 28px;
+  margin-top: 10px;
+  p {
+    margin: 0;
   }
 }
 </style>
