@@ -23,6 +23,7 @@
       <p>裁剪限制：120 x 120（必须是图片且尺寸大于限制）</p>
       <p>单文件大小限制：500 KB</p>
     </div>
+    <file-list />
     <div slot="footer" class="dialog-footer">
       <el-button size="medium" icon="el-icon-upload" :loading="loading">开始上传</el-button>
       <el-button icon="el-icon-delete" size="medium">清空</el-button>
@@ -33,10 +34,15 @@
 <script>
 import elDragDialog from '@/directive/el-drag-dialog'
 import { getToken } from '@/utils/auth'
+import FileList from './components/FileList'
 
 export default {
   name: 'Uploader',
+  version: '0.0.2',
   directives: { elDragDialog },
+  components: {
+    FileList
+  },
   props: {
     value: {
       // 隐藏 / 显示控件
@@ -88,7 +94,7 @@ export default {
   data() {
     return {
       loading: false,
-      width: '',
+      width: '700px',
       showTitle: ''
     }
   },
@@ -113,17 +119,8 @@ export default {
       return language.toLowerCase()
     }
   },
-  created() {
-    this.handleQueueSizeChange(0)
-  },
+  created() {},
   methods: {
-    handleQueueSizeChange(size) {
-      if (size > 0) {
-        this.width = '905px'
-      } else {
-        this.width = '590px'
-      }
-    },
     handleChangeUpload(e) {
       console.log(e)
     },
