@@ -17,6 +17,7 @@
       </div>
       <uploader
         v-model="uploadShow"
+        :option="option"
         @close="uploaderToggle(false)"
       />
       <div class="tips">
@@ -69,8 +70,16 @@ export default {
   },
   data() {
     return {
-      uploadShow: false,
-      image: this.value
+      uploadShow: true,
+      image: this.value,
+      option: {
+        sizeLimit: 500 * 1024,
+        typeLimit: ['image'],
+        queueSize: 2,
+        crop: {
+          open: true
+        }
+      }
     }
   },
   watch: {

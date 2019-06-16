@@ -1,16 +1,20 @@
 <template>
   <el-table
-    v-show="files.length > 0"
+    v-show="list.length > 0"
     :key="key"
     v-loading="loading"
-    :data="files"
+    :data="list"
     :max-height="maxHeight"
   >
-    <el-table-column label="文件" min-width="200">
+    <el-table-column label="文件" min-width="250">
       <div slot-scope="scope" class="fixed">
         <div class="thumbnails">
           <template v-if="isImage(scope.row.type)">
-            <el-image :src="scope.row.url" fit="contain" />
+            <el-image :src="scope.row.url" fit="contain">
+              <div slot="error" class="image-slot">
+                <i class="el-icon-picture-outline" />
+              </div>
+            </el-image>
           </template>
           <template v-else>
             <i class="el-icon-document" />
@@ -20,40 +24,81 @@
           <p class="name">
             <span>{{ scope.row.name }}</span>
           </p>
+          <el-progress
+            :text-inside="true"
+            :stroke-width="15"
+            :percentage="scope.row | formatProgress"
+            color="#67C23A"
+          />
           <p class="size">
+            <el-tag size="mini">{{ scope.row.name | formatType }}</el-tag>
+            <span>{{ scope.row.uploadedSize | formatSize }}</span>
+            /
             <span>{{ scope.row.size | formatSize }}</span>
-            <span v-show="scope.row.croped" class="crop">（已裁剪）</span>
+            <!-- <span v-show="scope.row.croped" class="crop">（已裁剪）</span> -->
           </p>
         </div>
       </div>
     </el-table-column>
-    <el-table-column label="进度" width="100">
-      <div slot-scope="scope" class="fixed">{{ scope.row | progressText }}</div>
-    </el-table-column>
     <el-table-column label="状态" width="120">
       <div slot-scope="scope" class="fixed">
         <div class="status">
-          <p>{{ scope.row.averageSpeed | speedText }}</p>
-          <p>{{ scope.row | timeRemainingText }}</p>
+          <p v-show="scope.row.speed">{{ scope.row.speed | formatSpeed }}</p>
+          <p>{{ scope.row | formatStatus }}</p>
         </div>
       </div>
     </el-table-column>
-    <el-table-column label="操作" width="220" align="center">
+    <el-table-column width="180" align="right">
       <div v-show="!scope.row.isComplete" slot-scope="scope">
-        <template v-show="scope.row.canCrop" class="crop-opr">
-          <el-button size="mini" type="primary" @click="handleCropStart()">裁剪</el-button>
+        <template v-if="scope.row.croped">
+          <el-tooltip class="item" effect="dark" content="还原图片" placement="top">
+            <el-button size="medium" type="primary" icon="el-icon-refresh-left" circle />
+          </el-tooltip>
+        </template>
+        <template v-else-if="scope.row.canCrop">
+          <el-tooltip class="item" effect="dark" content="图片裁剪" placement="top">
+            <el-button
+              size="medium"
+              type="primary"
+              icon="el-icon-scissors"
+              circle
+              @click="handleCropStart()"
+            />
+          </el-tooltip>
         </template>
         <template v-if="scope.row.error">
-          <el-button size="mini" type="warning">重试</el-button>
+          <el-tooltip class="item" effect="dark" content="重试" placement="top">
+            <el-button size="medium" type="warning" icon="el-icon-refresh-right" circle />
+          </el-tooltip>
         </template>
         <template v-else-if="scope.row.isInitialization">
-          <el-button size="mini" type="success">开始</el-button>
+          <el-tooltip class="item" effect="dark" content="开始上传" placement="top">
+            <el-button size="medium" type="success" icon="el-icon-caret-right" circle />
+          </el-tooltip>
         </template>
         <template v-else>
-          <el-button v-if="scope.row.paused" size="mini" type="success">继续</el-button>
-          <el-button v-if="!scope.row.paused" size="mini">暂停</el-button>
+          <el-tooltip class="item" effect="dark" content="继续上传" placement="top">
+            <el-button
+              v-if="scope.row.paused"
+              size="medium"
+              type="success"
+              icon="el-icon-caret-right"
+              circle
+            />
+          </el-tooltip>
+          <el-tooltip class="item" effect="dark" content="暂停" placement="top">
+            <el-button v-if="!scope.row.paused" size="medium" icon="el-icon-video-pause" circle />
+          </el-tooltip>
         </template>
-        <el-button size="mini" type="danger">移除</el-button>
+        <el-tooltip class="item" effect="dark" content="移除队列" placement="top">
+          <el-button
+            size="medium"
+            type="danger"
+            icon="el-icon-delete"
+            circle
+            @click="handleRemove(scope.row)"
+          />
+        </el-tooltip>
       </div>
     </el-table-column>
   </el-table>
@@ -72,23 +117,26 @@ export default {
     formatSize(size) {
       return formatSize(size)
     },
-    progressText(row) {
+    formatType(name) {
+      return name.substr(name.lastIndexOf('.') + 1).toUpperCase()
+    },
+    formatProgress(row) {
       // 上传进度文本
       let progress = Math.floor(row.progress * 10000) / 100
       if (progress >= 100 && !row.isComplete) {
         progress = 99
       }
-      return progress ? `${progress}%` : '-'
+      return progress
     },
-    speedText(speed) {
+    formatSpeed(speed) {
       // 速度文本
       if (speed > 0) {
         return `${formatSize(speed)} / 秒`
       } else {
-        return '-'
+        return ''
       }
     },
-    timeRemainingText(row) {
+    formatStatus(row) {
       // 剩余时间文本（状态）
       if (row.isComplete) {
         return '上传成功'
@@ -108,61 +156,108 @@ export default {
       }
     }
   },
+  props: {
+    files: {
+      type: Array,
+      default() {
+        return []
+      }
+    },
+    cropOption: {
+      type: Object,
+      default() {
+        return {}
+      }
+    }
+  },
   data() {
     return {
       loading: false,
+      maxHeight: 0,
       key: 0,
-      lines: 2, // 显示的文件行数
-      files: []
+      list: [],
+      lines: 4 // 显示的文件行数
+    }
+  },
+  computed: {
+    cropOpen() {
+      // 是否开启了裁剪功能
+      if (this.cropOption) {
+        return this.cropOption.open === true
+      } else {
+        return false
+      }
+    }
+  },
+  watch: {
+    files(value) {
+      if (value.length > 0) {
+        for (const file of value) {
+          this.fileInit(file)
+        }
+      }
     }
   },
   created() {
-    this.fileInit()
-    this.maxHeight = this.lines * 71 + 48
+    this.maxHeight = this.lines * 93 + 48
   },
   methods: {
-    fileInit() {
-      const files1 = {
-        id: 1,
-        type: 'image/png',
-        url:
-          'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif?imageView2/1/w/80/h/80',
-        name: '图片.png',
-        size: 2145225214,
-        progress: 0.1565,
-        averageSpeed: 4111415,
-        timeRemaining: 422,
-        paused: false, // 是否已暂停
-        error: false, // 是否出错
-        croped: true, // 是否已经被裁剪
-        canCrop: true, // 是否显示裁剪按钮
-        isInitialization: true, // 是否新加入的文件（用于显示“开始”按钮）
-        isComplete: false, // 是否已上传完毕
-        isUploading: true // 是否正在上传
-      }
-      const files2 = {
-        id: 2,
-        type: 'application/docx',
-        name: '文档.docx',
-        size: 2145225214,
-        progress: 0.1565,
-        averageSpeed: 4111415,
-        timeRemaining: 422,
-        paused: false, // 是否已暂停
-        error: false, // 是否出错
-        croped: false, // 是否已经被裁剪
-        canCrop: false, // 是否显示裁剪按钮
-        isInitialization: true, // 是否新加入的文件（用于显示“开始”按钮）
-        isComplete: false, // 是否已上传完毕
-        isUploading: true // 是否正在上传
-      }
-      for (let i = 0; i < 10; i++) {
-        this.files.push(files1)
-        this.files.push(files2)
+    fileInit(rowFile) {
+      console.log(rowFile)
+      const files_id = this.list.map(item => item.id)
+      if (!files_id.includes(rowFile.id)) {
+        const file = {
+          file: rowFile,
+          id: rowFile.id,
+          type: rowFile.fileType,
+          name: rowFile.name,
+          size: rowFile.size,
+          progress: 0,
+          speed: 0,
+          uploadedSize: 0, // 已上传的大小
+          paused: false, // 是否已暂停
+          error: false, // 是否出错
+          croped: false, // 是否已经被裁剪
+          canCrop: this.cropOpen && this.isImage(rowFile.fileType), // 是否显示裁剪按钮
+          isInitialization: true, // 是否新加入的文件（用于显示“开始”按钮）
+          isComplete: false, // 是否已上传完毕
+          isUploading: false // 是否正在上传
+        }
+        if (this.isImage(rowFile.fileType)) {
+          const fr = new FileReader()
+          fr.onload = e => {
+            file.url = fr.result
+            if (rowFile.uploader.opts.singleFile === true) {
+              // 设定了只上传单一文件
+              this.list = [file]
+            } else {
+              this.list.push(file)
+            }
+          }
+          fr.readAsDataURL(rowFile.file)
+        } else {
+          if (rowFile.uploader.opts.singleFile === true) {
+          // 设定了只上传单一文件
+            this.list = [file]
+          } else {
+            this.list.push(file)
+          }
+        }
       }
     },
     isImage(type) {
       return type.indexOf('image') !== -1
+    },
+    handleRemove(row) {
+      this.$confirm('将文件“' + row.name + '”移除列表?', '系统提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        const index = this.list.findIndex(item => item.id === row.id)
+        this.list.splice(index, 1)
+        this.$emit('remove', row.file)
+      })
     }
   }
 }
@@ -170,29 +265,38 @@ export default {
 
 <style lang="scss" scoped>
 .thumbnails {
-  float: left;
-  height: 46px;
+  position: absolute;
+  height: 30px;
   .el-image {
-    width: 46px;
-    height: 46px;
+    position: relative;
+    top: 3px;
+    width: 30px;
+    height: 30px;
   }
-  i{
-    font-size: 23px;
+  i {
+    position: relative;
+    top: 3px;
+    font-size: 30px;
   }
 }
 .information {
-  float: left;
-  margin-left: 10px;
+  padding-left: 40px;
+  .el-progress {
+    margin: 3px 0;
+  }
   p {
     margin: 0;
     height: 23px;
     overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     &.name {
       font-size: 16px;
       color: #333;
     }
     &.size {
-      color: #999;
+      font-size: 14px;
+      color: #aaa;
     }
   }
 }
@@ -205,8 +309,5 @@ export default {
 }
 .crop {
   color: #f56c6c;
-}
-.crop-opr {
-  margin-bottom: 10px;
 }
 </style>
