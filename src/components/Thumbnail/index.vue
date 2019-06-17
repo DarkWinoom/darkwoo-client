@@ -17,7 +17,10 @@
       </div>
       <uploader
         v-model="uploadShow"
-        :option="option"
+        target="https://httpbin.org/post"
+        :size-limit="500 * 1024 * 1024"
+        :type-limit="['image', 'video']"
+        :queue-limit="0"
         @close="uploaderToggle(false)"
       />
       <div class="tips">
@@ -71,15 +74,7 @@ export default {
   data() {
     return {
       uploadShow: true,
-      image: this.value,
-      option: {
-        sizeLimit: 500 * 1024,
-        typeLimit: ['image'],
-        queueSize: 0,
-        crop: {
-          open: true
-        }
-      }
+      image: this.value
     }
   },
   watch: {

@@ -25,9 +25,9 @@
             </div>
           </div>
           <div class="el-upload__tip">
-            <template v-if="option.queueSize > 0">
-              <p v-if="option.queueSize === 1">请选择单一文件</p>
-              <p v-else>数量限制：{{ option.queueSize }}</p>
+            <template v-if="queueLimit > 0">
+              <p v-if="queueLimit === 1">请选择单一文件</p>
+              <p v-else>数量限制：{{ queueLimit }}</p>
             </template>
             <p>格式限制：{{ typeLimitTips }}</p>
             <p>尺寸建议：120 x 120</p>
@@ -39,7 +39,7 @@
             <el-tab-pane :label="'上传列表 (' + files.length + ')'">
               <file-list
                 :files="files"
-                :crop-option="option.crop"
+                :crop-open="cropOpen"
                 @remove="remove"
               />
             </el-tab-pane>
@@ -75,7 +75,7 @@ import FileList from './components/FileList'
 
 export default {
   name: 'Uploader',
-  version: '0.1.4',
+  version: '0.1.5',
   provide() {
     return {
       uploader: this
@@ -97,40 +97,75 @@ export default {
       default: ''
     },
     field: {
+      // 上传文件的域
       type: String,
       default: 'upload'
     },
-    option: {
+    target: {
+      // 上传目标url
+      type: String,
+      default: ''
+    },
+    headers: {
+      // 额外的请求头
       type: Object,
       default() {
-        return {
-          // 目标上传 URL
-          target: '',
-
-          // 额外的请求头
-          headers: {},
-
-          // 队列中允许的最大文件数量（默认不限）
-          queueSize: 0,
-
-          // 单文件大小限制（默认不限）
-          sizeLimit: 0,
-
-          // 上传文件格式限制，支持扩展名与image、video、audio（默认不限）
-          // example：['zip','image','pdf','doc','docx']
-          typeLimit: ['image'],
-
-          // 裁剪功能设定（仅支持图片）
-          crop: {
-            open: true, // 是否开启截取功能（自动识别图片）
-            width: 120, // 初始截取框宽度
-            height: 120, // 初始截取框高度
-            fixed: [1, 1], // 固定宽高比，可设定为true（固定截取框）或者false（自由调整）
-            quantity: 1, // 输出图片质量（0.1 - 1）
-            avatarMod: false // 是否开启头像预览模式
-          }
-        }
+        return {}
       }
+    },
+    queueLimit: {
+      // 队列中允许的最大文件数量（默认不限）
+      type: Number,
+      default: 0
+    },
+    sizeLimit: {
+      // 单文件大小限制（默认不限）
+      type: Number,
+      default: 0
+    },
+    typeLimit: {
+      // 上传文件格式限制，支持扩展名与image、video、audio（默认不限）
+      type: Array,
+      default() {
+        return []
+      }
+    },
+    cropOpen: {
+      // 是否开启截取功能（自动识别图片）
+      type: Boolean,
+      default: true
+    },
+    cropWidth: {
+      // 初始截取框宽度
+      type: Number,
+      default: 120
+    },
+    cropHeight: {
+      // 初始截取框高度
+      type: Number,
+      default: 120
+    },
+    cropFixed: {
+      // 是否开启截图框宽高固定比例
+      type: Boolean,
+      default: false
+    },
+    cropFixedRatio: {
+      // 截图框的宽高比例（需要开启固定比例）
+      type: Array,
+      default() {
+        return [1, 1]
+      }
+    },
+    cropOutputQuantity: {
+      // 输出图片质量（0.1 - 1）
+      type: Number,
+      default: 1
+    },
+    cropOutputType: {
+      // 输出图片格式（支持jpg和png）
+      type: String,
+      default: 'png'
     },
     lang: {
       type: String,
@@ -148,14 +183,14 @@ export default {
       support: true,
       // simple-uploader 配置
       simpleUploaderOption: {
-        target: 'https://httpbin.org/post',
+        target: this.target,
         // testChunks: false,
         fileParameterName: this.field,
         successStatuses: [200, 201, 202],
         permanentErrors: [206, 404, 415, 500, 501],
-        singleFile: this.option.queueSize === 1,
+        singleFile: this.queueLimit === 1,
         headers: (file, chunk) => {
-          return this.option.headers
+          return this.headers ? this.headers : {}
         },
         query: function(file, chunk) {
           return { id: file.id }
@@ -186,9 +221,9 @@ export default {
     },
     typeLimitTips() {
       // 格式转换成文字提示
-      if (this.option.typeLimit.length > 0) {
+      if (this.typeLimit.length > 0) {
         const typeTips = []
-        for (const type of this.option.typeLimit) {
+        for (const type of this.typeLimit) {
           let suffix
           switch (type) {
             case 'image':
@@ -212,8 +247,8 @@ export default {
     },
     sizeLimitTips() {
       // 大小转换成文字提示
-      if (this.option.sizeLimit) {
-        return formatSize(this.option.sizeLimit)
+      if (this.sizeLimit) {
+        return formatSize(this.sizeLimit)
       } else {
         return '不限'
       }
@@ -233,8 +268,8 @@ export default {
     this.$nextTick(() => {
       if (this.support) {
         var accept = []
-        if (this.option.typeLimit) {
-          for (const type of this.option.typeLimit) {
+        if (this.typeLimit) {
+          for (const type of this.typeLimit) {
             switch (type) {
               case 'image':
                 accept.push('image/*')
@@ -288,18 +323,18 @@ export default {
     },
     fileAdded(file, event) {
       // 格式与大小检测
-      if (this.option.queueSize > 0 && this.files.length >= this.option.queueSize) {
+      if (this.queueLimit > 0 && this.files.length >= this.queueLimit) {
         this.ignoreNotify(file, '文件数量超过限制')
         return false
       } else if (file.name.lastIndexOf('.') === -1) {
         this.ignoreNotify(file, '文件格式有误')
         return false
-      } else if (this.option.typeLimit.length > 0) {
+      } else if (this.typeLimit.length > 0) {
         const suffix = file.name
           .substring(file.name.lastIndexOf('.') + 1, file.name.length)
           .toLowerCase()
         let access = false
-        for (const type of this.option.typeLimit) {
+        for (const type of this.typeLimit) {
           switch (type) {
             case 'image':
             case 'video':
@@ -319,7 +354,7 @@ export default {
           return false
         }
       }
-      if (this.option.sizeLimit && file.size > this.option.sizeLimit) {
+      if (this.sizeLimit && file.size > this.sizeLimit) {
         this.ignoreNotify(file, '文件大小超过限制')
         return false
       }
@@ -329,8 +364,8 @@ export default {
       this.files.splice(index, 1)
     },
     filesSubmitted(files, fileList, event) {
-      if (this.option.queueSize > 0 && this.files.length + files.length > this.option.queueSize) {
-        const less = this.option.queueSize - this.files.length
+      if (this.queueLimit > 0 && this.files.length + files.length > this.queueLimit) {
+        const less = this.queueLimit - this.files.length
         for (const index in files) {
           this.files.push(files[index])
           if (index > less - 1) {

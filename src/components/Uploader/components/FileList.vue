@@ -152,7 +152,7 @@ export default {
         return '已暂停'
       } else if (row.isUploading) {
         const time = row.timeRemaining
-        if (Number.isFinite(time)) {
+        if (Number.isFinite(time) && time >= 0) {
           return secondsToStr(time)
         } else {
           return '正在上传'
@@ -169,11 +169,9 @@ export default {
         return []
       }
     },
-    cropOption: {
-      type: Object,
-      default() {
-        return {}
-      }
+    cropOpen: {
+      type: Boolean,
+      default: true
     }
   },
   data() {
@@ -186,16 +184,6 @@ export default {
       key: 0,
       list: [],
       lines: 4 // 显示的文件行数
-    }
-  },
-  computed: {
-    cropOpen() {
-      // 是否开启了裁剪功能
-      if (this.cropOption) {
-        return this.cropOption.open === true
-      } else {
-        return false
-      }
     }
   },
   watch: {
