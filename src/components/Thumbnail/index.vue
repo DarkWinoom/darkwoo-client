@@ -75,7 +75,7 @@ export default {
       option: {
         sizeLimit: 500 * 1024,
         typeLimit: ['image'],
-        queueSize: 2,
+        queueSize: 0,
         crop: {
           open: true
         }

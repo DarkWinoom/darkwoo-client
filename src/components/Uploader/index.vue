@@ -37,7 +37,11 @@
         <el-col :span="16">
           <el-tabs class="upload-pane">
             <el-tab-pane :label="'上传列表 (' + files.length + ')'">
-              <file-list :files="files" :crop-option="option.crop" @remove="remove" />
+              <file-list
+                :files="files"
+                :crop-option="option.crop"
+                @remove="remove"
+              />
             </el-tab-pane>
           </el-tabs>
         </el-col>
@@ -71,7 +75,7 @@ import FileList from './components/FileList'
 
 export default {
   name: 'Uploader',
-  version: '0.1.3',
+  version: '0.1.4',
   provide() {
     return {
       uploader: this
@@ -137,7 +141,7 @@ export default {
     return {
       loading: false,
       // 上传框总宽度
-      width: '920px',
+      width: '890px',
       // 显示的标题
       showTitle: '',
       // 是否支持
@@ -145,7 +149,7 @@ export default {
       // simple-uploader 配置
       simpleUploaderOption: {
         target: 'https://httpbin.org/post',
-        testChunks: false,
+        // testChunks: false,
         fileParameterName: this.field,
         successStatuses: [200, 201, 202],
         permanentErrors: [206, 404, 415, 500, 501],
@@ -223,7 +227,6 @@ export default {
       this.uploader.on('fileRemoved', this.fileRemoved)
       this.uploader.on('filesSubmitted', this.filesSubmitted)
       this.uploader.on('fileError', this.fileError)
-      this.uploader.on('complete', this.complete)
     }
   },
   mounted() {
@@ -285,7 +288,7 @@ export default {
     },
     fileAdded(file, event) {
       // 格式与大小检测
-      if (this.files.length >= this.option.queueSize) {
+      if (this.option.queueSize > 0 && this.files.length >= this.option.queueSize) {
         this.ignoreNotify(file, '文件数量超过限制')
         return false
       } else if (file.name.lastIndexOf('.') === -1) {
@@ -326,7 +329,7 @@ export default {
       this.files.splice(index, 1)
     },
     filesSubmitted(files, fileList, event) {
-      if (this.files.length + files.length > this.option.queueSize) {
+      if (this.option.queueSize > 0 && this.files.length + files.length > this.option.queueSize) {
         const less = this.option.queueSize - this.files.length
         for (const index in files) {
           this.files.push(files[index])
