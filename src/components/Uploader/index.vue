@@ -30,25 +30,21 @@
               <p v-else>数量限制：{{ queueLimit }}</p>
             </template>
             <p>格式限制：{{ typeLimitTips }}</p>
-            <p>尺寸建议：120 x 120</p>
+            <p v-show="cropOpen && cropFixed">尺寸建议：{{ cropWidth }} x {{ cropHeight }}</p>
             <p>单文件大小限制：{{ sizeLimitTips }}</p>
           </div>
         </el-col>
         <el-col :span="16">
-          <el-tabs class="upload-pane">
-            <el-tab-pane :label="'上传列表 (' + files.length + ')'">
-              <file-list
-                :files="files"
-                :crop-open="cropOpen"
-                @remove="remove"
-              />
-            </el-tab-pane>
-          </el-tabs>
+          <file-list
+            v-model="value"
+            :files="files"
+            :queue-limit="queueLimit"
+            :crop-open="cropOpen"
+            @remove="remove"
+          />
         </el-col>
       </el-row>
       <div slot="footer" class="dialog-footer">
-        <el-button type="success" size="medium" icon="el-icon-upload2" :loading="loading" plain>全部开始</el-button>
-        <el-button type="danger" icon="el-icon-delete" size="medium" plain>清空</el-button>
         <el-button size="medium" @click="handleClose">关闭</el-button>
       </div>
     </template>
@@ -70,12 +66,12 @@ import MimeTypes from 'mime-types'
 import Uploader from 'simple-uploader.js'
 import elDragDialog from '@/directive/el-drag-dialog'
 import { getToken } from '@/utils/auth'
-import { formatSize } from './utils'
+import { formatSize } from '@/utils'
 import FileList from './components/FileList'
 
 export default {
   name: 'Uploader',
-  version: '0.1.5',
+  version: '0.1.6',
   provide() {
     return {
       uploader: this
@@ -182,13 +178,14 @@ export default {
       // 是否支持
       support: true,
       // simple-uploader 配置
-      simpleUploaderOption: {
+      simpleUploaderOptions: {
         target: this.target,
-        // testChunks: false,
+        testChunks: false,
         fileParameterName: this.field,
         successStatuses: [200, 201, 202],
         permanentErrors: [206, 404, 415, 500, 501],
         singleFile: this.queueLimit === 1,
+        initialPaused: true,
         headers: (file, chunk) => {
           return this.headers ? this.headers : {}
         },
@@ -255,7 +252,7 @@ export default {
     }
   },
   created() {
-    this.uploader = new Uploader(this.simpleUploaderOption)
+    this.uploader = new Uploader(this.simpleUploaderOptions)
     this.support = this.uploader.support
     if (this.support) {
       this.uploader.on('fileAdded', this.fileAdded)
@@ -364,7 +361,10 @@ export default {
       this.files.splice(index, 1)
     },
     filesSubmitted(files, fileList, event) {
-      if (this.queueLimit > 0 && this.files.length + files.length > this.queueLimit) {
+      if (
+        this.queueLimit > 0 &&
+        this.files.length + files.length > this.queueLimit
+      ) {
         const less = this.queueLimit - this.files.length
         for (const index in files) {
           this.files.push(files[index])
@@ -385,7 +385,30 @@ export default {
       this.uploader.removeFile(file)
     },
     handleClose() {
-      this.$emit('close')
+      if (this.files.length > 0) {
+        let uploading = false
+        for (const file of this.files) {
+          if (file.isUploading()) {
+            uploading = true
+          }
+        }
+        if (uploading) {
+          this.$confirm('有文件正在上传中，是否关闭窗口?', '系统提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }).then(() => {
+            for (const file of this.files) {
+              file.pause()
+            }
+            this.$emit('close')
+          })
+        } else {
+          this.$emit('close')
+        }
+      } else {
+        this.$emit('close')
+      }
     }
   }
 }

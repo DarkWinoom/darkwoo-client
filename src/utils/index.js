@@ -94,6 +94,29 @@ export function formatTime(time, option) {
 }
 
 /**
+ * 格式化文件大小
+ *
+ * @param {[Integer]} filesize 文件大小
+ * @return {[String]}
+ */
+export function formatSize(filesize) {
+  if (filesize == null || !filesize) {
+    return '0 B'
+  }
+  const unitArr = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
+  let index = 0
+  const srcsize = parseFloat(filesize)
+  index = Math.floor(Math.log(srcsize) / Math.log(1024))
+  let size = srcsize / Math.pow(1024, index)
+  if (filesize < 1024 * 1024) {
+    size = size.toFixed(0)
+  } else {
+    size = size.toFixed(2)
+  }
+  return size + ' ' + unitArr[index]
+}
+
+/**
  * @param {string} url
  * @returns {Object}
  */
