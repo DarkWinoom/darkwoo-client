@@ -1,6 +1,6 @@
 <template>
   <div>
-    <pane-button
+    <control-button
       v-show="queueLimit !== 1"
       :show-start="!isComplete"
       :show-clear="list.length > 0"
@@ -11,46 +11,14 @@
       <el-tab-pane :label="'上传列表 (' + files.length + ')'">
         <el-table v-show="list.length > 0" v-loading="loading" :data="list" :max-height="maxHeight">
           <el-table-column label="文件" min-width="250">
-            <div slot-scope="scope" class="fixed">
-              <div class="thumbnails">
-                <template v-if="isImage(scope.row.type)">
-                  <el-image :src="scope.row.url" fit="contain">
-                    <div slot="error" class="image-slot">
-                      <i class="el-icon-picture-outline" />
-                    </div>
-                  </el-image>
-                </template>
-                <template v-else>
-                  <i class="el-icon-document" />
-                </template>
-              </div>
-              <div class="information">
-                <p class="name">
-                  <span>{{ scope.row.name }}</span>
-                </p>
-                <el-progress
-                  :text-inside="true"
-                  :stroke-width="15"
-                  :percentage="scope.row | formatProgress"
-                  color="#67C23A"
-                />
-                <p class="size">
-                  <el-tag size="mini">{{ scope.row.name | formatType }}</el-tag>
-                  <span>{{ scope.row.uploadedSize | formatSize }}</span>
-                  /
-                  <span>{{ scope.row.size | formatSize }}</span>
-                  <!-- <span v-show="scope.row.croped" class="crop">（已裁剪）</span> -->
-                </p>
-              </div>
-            </div>
+            <template slot-scope="scope">
+              <file-information :data="scope.row" />
+            </template>
           </el-table-column>
           <el-table-column label="状态" width="120">
-            <div slot-scope="scope" class="fixed">
-              <div class="status">
-                <p v-show="scope.row.speed">{{ scope.row.speed | formatSpeed }}</p>
-                <p>{{ scope.row | formatStatus }}</p>
-              </div>
-            </div>
+            <template slot-scope="scope">
+              <file-status :data="scope.row" />
+            </template>
           </el-table-column>
           <el-table-column width="160" align="right">
             <div v-show="!scope.row.isComplete" slot-scope="scope">
@@ -125,61 +93,13 @@
 </template>
 
 <script>
-import { formatSize } from '@/utils'
-import {
-  secondsToStr
-  // data2blob
-} from './utils'
-import PaneButton from './components/PaneButton'
+import ControlButton from './components/Button'
+import FileInformation from './components/Information'
+import FileStatus from './components/Status'
 
 export default {
   name: 'UploaderFileList',
-  components: { PaneButton },
-  filters: {
-    formatSize(size) {
-      return formatSize(size)
-    },
-    formatType(name) {
-      return name.substr(name.lastIndexOf('.') + 1).toUpperCase()
-    },
-    formatProgress(row) {
-      // 上传进度文本
-      let progress = Math.floor(row.progress * 10000) / 100
-      if (progress >= 100 && !row.isComplete) {
-        progress = 99
-      }
-      return progress
-    },
-    formatSpeed(speed) {
-      // 速度文本
-      if (speed > 0) {
-        return `${formatSize(speed)} / 秒`
-      } else {
-        return ''
-      }
-    },
-    formatStatus(row) {
-      // 剩余时间文本（状态）
-      if (row.isComplete) {
-        return '上传成功'
-      } else if (row.error) {
-        return '上传失败'
-      } else if (row.paused) {
-        return '已暂停'
-      } else if (row.isUploading) {
-        const time = row.timeRemaining
-        if (Number.isFinite(time) && time > 0) {
-          return secondsToStr(time)
-        } else if (row.progress !== 1) {
-          return '正在连接'
-        } else {
-          return '-'
-        }
-      } else {
-        return '等待上传'
-      }
-    }
-  },
+  components: { ControlButton, FileInformation, FileStatus },
   props: {
     value: {
       // 隐藏 / 显示控件（状态）
@@ -459,49 +379,6 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.thumbnails {
-  position: absolute;
-  height: 30px;
-  .el-image {
-    position: relative;
-    top: 3px;
-    width: 30px;
-    height: 30px;
-  }
-  i {
-    position: relative;
-    top: 3px;
-    font-size: 30px;
-  }
-}
-.information {
-  padding-left: 40px;
-  .el-progress {
-    margin: 3px 0;
-  }
-  p {
-    margin: 0;
-    height: 23px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    &.name {
-      font-size: 16px;
-      color: #333;
-    }
-    &.size {
-      font-size: 14px;
-      color: #aaa;
-    }
-  }
-}
-.status {
-  p {
-    margin: 0;
-    height: 23px;
-    overflow: hidden;
-  }
-}
 .crop {
   color: #f56c6c;
 }
