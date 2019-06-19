@@ -1,15 +1,21 @@
 <template>
   <div>
-    <control-button
+    <file-control
       v-show="queueLimit !== 1"
-      :show-start="!isComplete"
-      :show-clear="list.length > 0"
+      :list="list"
       @start="handleStartAll"
+      @pause="handlePauseAll"
       @clear="handleClear"
     />
     <el-tabs>
       <el-tab-pane :label="'上传列表 (' + files.length + ')'">
-        <el-table v-show="list.length > 0" v-loading="loading" :data="list" :max-height="maxHeight">
+        <el-table
+          v-show="list.length > 0"
+          :key="key"
+          v-loading="loading"
+          :data="list"
+          :max-height="maxHeight"
+        >
           <el-table-column label="文件" min-width="250">
             <template slot-scope="scope">
               <file-information :data="scope.row" />
@@ -22,68 +28,13 @@
           </el-table-column>
           <el-table-column width="160" align="right">
             <div v-show="!scope.row.isComplete" slot-scope="scope">
-              <template v-if="scope.row.croped">
-                <el-tooltip class="item" effect="dark" content="还原图片" placement="top">
-                  <el-button size="medium" type="primary" icon="el-icon-refresh-left" circle />
-                </el-tooltip>
-              </template>
-              <template v-else-if="scope.row.canCrop">
-                <el-tooltip class="item" effect="dark" content="图片裁剪" placement="top">
-                  <el-button size="medium" type="primary" icon="el-icon-scissors" circle />
-                </el-tooltip>
-              </template>
-              <template v-if="scope.row.error">
-                <el-tooltip class="item" effect="dark" content="重试" placement="top">
-                  <el-button
-                    size="medium"
-                    type="warning"
-                    icon="el-icon-refresh-right"
-                    circle
-                    @click="handleRetry(scope.row)"
-                  />
-                </el-tooltip>
-              </template>
-              <template v-else-if="scope.row.isInitialization">
-                <el-tooltip class="item" effect="dark" content="开始上传" placement="top">
-                  <el-button
-                    size="medium"
-                    type="success"
-                    icon="el-icon-caret-right"
-                    circle
-                    @click="handleResume(scope.row)"
-                  />
-                </el-tooltip>
-              </template>
-              <template v-else>
-                <el-tooltip class="item" effect="dark" content="继续上传" placement="top">
-                  <el-button
-                    v-if="scope.row.paused"
-                    size="medium"
-                    type="success"
-                    icon="el-icon-caret-right"
-                    circle
-                    @click="handleResume(scope.row)"
-                  />
-                </el-tooltip>
-                <el-tooltip class="item" effect="dark" content="暂停" placement="top">
-                  <el-button
-                    v-if="!scope.row.paused"
-                    size="medium"
-                    icon="el-icon-video-pause"
-                    circle
-                    @click="handlePause(scope.row)"
-                  />
-                </el-tooltip>
-              </template>
-              <el-tooltip class="item" effect="dark" content="移除队列" placement="top">
-                <el-button
-                  size="medium"
-                  type="danger"
-                  icon="el-icon-delete"
-                  circle
-                  @click="handleRemove(scope.row)"
-                />
-              </el-tooltip>
+              <file-button
+                :data="scope.row"
+                @retry="handleRetry"
+                @resume="handleResume"
+                @pause="handlePause"
+                @remove="handleRemove"
+              />
             </div>
           </el-table-column>
         </el-table>
@@ -93,13 +44,14 @@
 </template>
 
 <script>
-import ControlButton from './components/Button'
+import FileControl from './components/Control'
 import FileInformation from './components/Information'
 import FileStatus from './components/Status'
+import FileButton from './components/Button'
 
 export default {
   name: 'UploaderFileList',
-  components: { ControlButton, FileInformation, FileStatus },
+  components: { FileControl, FileInformation, FileStatus, FileButton },
   props: {
     value: {
       // 隐藏 / 显示控件（状态）
@@ -125,6 +77,7 @@ export default {
     return {
       loading: false,
       maxHeight: 0,
+      key: 0, // 修改key可以强制刷新表格，用来解决删除文件后表格不更新的问题
       events: [
         'fileProgress',
         'fileSuccess' /* , 'fileComplete' */,
@@ -143,10 +96,13 @@ export default {
   computed: {
     isComplete() {
       // 列表中的文件是否全部上传完毕（若列表为空返回true）
-      let complete = true
-      for (const row of this.list) {
-        if (row.isComplete === false || row.error === true) {
-          complete = false
+      let complete = false
+      if (this.list.length > 0) {
+        complete = true
+        for (const row of this.list) {
+          if (row.isComplete === false || row.error === true) {
+            complete = false
+          }
         }
       }
       return complete
@@ -163,6 +119,10 @@ export default {
         this.fileIncrease++
         this.fileInit(file, this.fileIncrease)
       }
+      // 根据文件的添加顺序重新排列
+      this.list.sort((a, b) => {
+        return a.queue - b.queue
+      })
     }
   },
   created() {
@@ -181,9 +141,11 @@ export default {
       const files_id = this.list.map(item => item.id)
       if (!files_id.includes(rowFile.id)) {
         const file = {
+          queue: index,
           file: rowFile.file,
-          id: rowFile.id,
+          id: rowFile.id, // 原文件列表和新生成的文件列表通过id进行对应
           type: rowFile.fileType,
+          url: '',
           name: rowFile.name,
           size: rowFile.size,
           progress: 0,
@@ -194,6 +156,7 @@ export default {
           error: false, // 是否出错
           croped: false, // 是否已经被裁剪
           canCrop: this.cropOpen && this.isImage(rowFile.fileType), // 是否显示裁剪按钮
+          isRealImage: false, // 是否是真实的图片
           isInitialization: true, // 是否新加入的文件（用于显示“开始”按钮）
           isComplete: false, // 是否已上传完毕
           isUploading: false // 是否正在上传
@@ -207,25 +170,20 @@ export default {
         this.events.forEach(event => {
           rowFile.uploader.on(event, eventHandler(event))
         })
+        if (rowFile.uploader.opts.singleFile === true) {
+          // 设定了只上传单一文件
+          this.list = [file]
+        } else {
+          this.list.push(file)
+        }
         if (this.isImage(rowFile.fileType)) {
           const fr = new FileReader()
           fr.onload = e => {
-            file.url = fr.result
-            if (rowFile.uploader.opts.singleFile === true) {
-              // 设定了只上传单一文件
-              this.list = [file]
-            } else {
-              this.list.push(file)
-            }
+            const row = this._getRow(rowFile.id)
+            row.url = fr.result
+            row.isRealImage = true
           }
           fr.readAsDataURL(rowFile.file)
-        } else {
-          if (rowFile.uploader.opts.singleFile === true) {
-            // 设定了只上传单一文件
-            this.list = [file]
-          } else {
-            this.list.push(file)
-          }
         }
         if (files_id.length === 0 && this.fileIncrease <= 1) {
           rowFile.uploader.on('complete', () => {
@@ -246,36 +204,40 @@ export default {
         this[`_${event}`].apply(this, args)
       }
     },
-    handleResume(row) {
+    handleResume(id) {
       // 继续 & 开始下载
+      const row = this._getRow(id)
+      const file = this._getFile(id)
       row.canCrop = false // 开始后禁止裁剪
-      const file = this._getFile(row.id)
       file.resume()
       this._actionCheck(file)
       this.completeLock = false
     },
-    handlePause(row) {
+    handlePause(id) {
       // 暂停
-      const file = this._getFile(row.id)
+      const file = this._getFile(id)
       file.pause()
       this._actionCheck(file)
       this._fileProgress(file)
     },
-    handleRetry(row) {
+    handleRetry(id) {
       // 重试
-      const file = this._getFile(row.id)
+      const file = this._getFile(id)
       file.retry()
       this._actionCheck(file)
     },
-    handleRemove(row) {
+    handleRemove(id) {
+      const row = this._getRow(id)
+      const file = this._getFile(id)
       this.$confirm('将文件“' + row.name + '”移除列表?', '系统提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        const index = this.list.findIndex(item => item.id === row.id)
+        const index = this.list.findIndex(item => item.id === id)
         this.list.splice(index, 1)
-        this.$emit('remove', row.file)
+        this.$emit('remove', file)
+        this.key++
         this.completeLock = false
         if (this.isComplete) {
           this.complete()
@@ -290,21 +252,15 @@ export default {
       this.completeLock = true
       console.log('complete')
     },
-    _getFile(rowId, key = 'id') {
-      for (const file of this.files) {
-        if (file[key] === rowId) {
-          return file
-        }
-      }
-      return false
+    _getFile(value, field = 'id') {
+      return this.files.find(item => {
+        return item[field] === value
+      })
     },
-    _getRow(fileId, key = 'id') {
-      for (const row of this.list) {
-        if (row[key] === fileId) {
-          return row
-        }
-      }
-      return false
+    _getRow(value, field = 'id') {
+      return this.list.find(item => {
+        return item[field] === value
+      })
     },
     _actionCheck(file) {
       const row = this._getRow(file.id)
@@ -355,7 +311,14 @@ export default {
       // 全部开始
       if (this.isComplete) return true
       for (const row of this.list) {
-        this.handleResume(row)
+        this.handleResume(row.id)
+      }
+    },
+    handlePauseAll() {
+      // 全部暂停
+      if (this.isComplete) return true
+      for (const row of this.list) {
+        this.handlePause(row.id)
       }
     },
     handleClear() {

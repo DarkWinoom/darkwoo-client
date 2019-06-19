@@ -71,7 +71,7 @@ import FileList from './components/FileList'
 
 export default {
   name: 'Uploader',
-  version: '0.1.7',
+  version: '0.1.8',
   provide() {
     return {
       uploader: this
