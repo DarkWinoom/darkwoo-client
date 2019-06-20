@@ -81,16 +81,16 @@ export default {
       events: [
         'fileProgress',
         'fileSuccess' /* , 'fileComplete' */,
-        'fileError'
+        'fileError',
+        'complete'
       ],
       handlers: {},
       errors: [], // 出错的file.id，用以过滤错误提示
-      fileIncrease: 0, // 文件列表变动次数（新增或删除）
+      index: 0, // 文件索引（按新增顺序）
       list: [],
       lines: 4, // 显示的文件行数
       completeLock: false
-      // 队列完成锁。某些情况下complete()方法会被多次调用，因此加入了一个锁机制
-      // 解锁事件：加入新文件、开始 & 暂停下载、删除下载
+      // 某些情况下complete()方法会被多次调用，加入锁可保证只会执行一次
     }
   },
   computed: {
@@ -116,8 +116,8 @@ export default {
     },
     files(value) {
       for (const file of value) {
-        this.fileIncrease++
-        this.fileInit(file, this.fileIncrease)
+        this.index++
+        this.fileInit(file, this.index)
       }
       // 根据文件的添加顺序重新排列
       this.list.sort((a, b) => {
@@ -137,9 +137,9 @@ export default {
   },
   methods: {
     fileInit(rowFile, index) {
-      this.completeLock = false
       const files_id = this.list.map(item => item.id)
       if (!files_id.includes(rowFile.id)) {
+        const isImage = rowFile.fileType.indexOf('image') !== -1
         const file = {
           queue: index,
           file: rowFile.file,
@@ -155,7 +155,7 @@ export default {
           paused: false, // 是否已暂停
           error: false, // 是否出错
           croped: false, // 是否已经被裁剪
-          canCrop: this.cropOpen && this.isImage(rowFile.fileType), // 是否显示裁剪按钮
+          canCrop: this.cropOpen && isImage, // 是否显示裁剪按钮
           isRealImage: false, // 是否是真实的图片
           isInitialization: true, // 是否新加入的文件（用于显示“开始”按钮）
           isComplete: false, // 是否已上传完毕
@@ -163,7 +163,9 @@ export default {
         }
         const eventHandler = event => {
           this.handlers[event] = (...args) => {
-            this.fileEventsHandler(event, args)
+            if (args[1] === args[0]) {
+              this[`_${event}`].apply(this, args)
+            }
           }
           return this.handlers[event]
         }
@@ -176,7 +178,7 @@ export default {
         } else {
           this.list.push(file)
         }
-        if (this.isImage(rowFile.fileType)) {
+        if (isImage) {
           const fr = new FileReader()
           fr.onload = e => {
             const row = this._getRow(rowFile.id)
@@ -185,23 +187,6 @@ export default {
           }
           fr.readAsDataURL(rowFile.file)
         }
-        if (files_id.length === 0 && this.fileIncrease <= 1) {
-          rowFile.uploader.on('complete', () => {
-            this.complete()
-          })
-        }
-      }
-    },
-    isImage(type) {
-      return type.indexOf('image') !== -1
-    },
-    fileEventsHandler(event, args) {
-      if (args[1] === args[0]) {
-        /* if (event === 'fileSuccess') {
-          // this.callback.push(JSON.parse(args[2]))
-          return
-        } */
-        this[`_${event}`].apply(this, args)
       }
     },
     handleResume(id) {
@@ -211,7 +196,6 @@ export default {
       row.canCrop = false // 开始后禁止裁剪
       file.resume()
       this._actionCheck(file)
-      this.completeLock = false
     },
     handlePause(id) {
       // 暂停
@@ -232,18 +216,9 @@ export default {
       this.list.splice(index, 1)
       this.$emit('remove', file)
       this.key++
-      this.completeLock = false
       if (this.isComplete) {
         this.complete()
       }
-    },
-    complete() {
-      // 列表中文件全部上传完成后回调
-      if (this.completeLock) {
-        return false
-      }
-      this.completeLock = true
-      console.log('complete')
     },
     _getFile(value, field = 'id') {
       return this.files.find(item => {
@@ -279,26 +254,16 @@ export default {
     },
     _fileError(rootFile, file, message, chunk) {
       // 上传失败
-      const json = JSON.parse(message)
-      if (json.data) {
-        return this._fileSuccess(rootFile, file, message, chunk)
+      console.log(rootFile, message)
+    },
+    _complete() {
+      // 列表中文件全部上传完成后回调
+      console.log('complete try')
+      if (this.completeLock) {
+        return false
       }
-      this._fileProgress(file)
-      const row = this._getRow(file.id)
-      row.error = true
-      row.isComplete = false
-      row.isUploading = false
-      if (!this.errors.includes(file.id)) {
-        setTimeout(() => {
-          this.$notify({
-            title: '文件上传失败',
-            message: typeof message === 'string' ? message : '未知错误',
-            type: 'warning',
-            duration: 6000
-          })
-        }, 10)
-        this.errors.push(file.id)
-      }
+      this.completeLock = true
+      console.log('completed!')
     },
     handleStartAll() {
       // 全部开始
@@ -327,9 +292,3 @@ export default {
   }
 }
 </script>
-
-<style lang="scss" scoped>
-.crop {
-  color: #f56c6c;
-}
-</style>

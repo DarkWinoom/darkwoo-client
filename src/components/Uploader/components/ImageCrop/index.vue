@@ -27,8 +27,8 @@
       </div>
     </div>
     <div slot="footer" class="dialog-footer">
-      <el-button @click="handleClose">取 消</el-button>
-      <el-button type="primary" :loading="loading" @click="finish">确认</el-button>
+      <el-button size="medium" @click="handleClose">取 消</el-button>
+      <el-button type="primary" size="medium" :loading="loading" @click="finish">确认</el-button>
     </div>
   </el-dialog>
 </template>

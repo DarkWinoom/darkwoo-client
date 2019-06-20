@@ -73,7 +73,7 @@ import ImageCrop from './components/ImageCrop'
 
 export default {
   name: 'Uploader',
-  version: '0.1.9',
+  version: '0.1.10',
   provide() {
     return {
       uploader: this
@@ -303,7 +303,7 @@ export default {
       this.uploader.off('fileRemoved', this.fileRemoved)
       this.uploader.off('filesSubmitted', this.filesSubmitted)
       this.uploader.off('fileError', this.fileError)
-      this.uploader.off('complete', this.complete)
+      // this.uploader.off('complete', this.complete)
       if (this.$refs.drop) {
         this.uploader.unAssignDrop(this.$refs.drop)
       }

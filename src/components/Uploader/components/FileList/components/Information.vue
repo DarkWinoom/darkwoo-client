@@ -1,8 +1,9 @@
 <template>
   <div>
     <div class="thumbnails">
-      <template v-if="isImage(row.type)">
-        <el-image :src="row.url" fit="contain">
+      <template v-if="isImage">
+        <img ref="viewer" :src="row.url" :alt="row.name" class="none">
+        <el-image :src="row.url" title="点击预览" fit="contain" @load="initViewer" @click="showViewer">
           <div slot="error" class="image-slot">
             <i title="无法读取图片" class="el-icon-picture-outline" />
           </div>
@@ -34,6 +35,8 @@
 
 <script>
 import { formatSize } from '@/utils'
+import Viewer from 'viewerjs'
+import 'viewerjs/dist/viewer.css'
 
 export default {
   filters: {
@@ -70,26 +73,64 @@ export default {
   },
   data() {
     return {
-      row: this.data
+      row: this.data,
+      isImage: false,
+      viewer: undefined
     }
   },
+  mounted() {
+    this.$nextTick(() => {
+      this.isImage = this.row.type.indexOf('image') !== -1
+    })
+  },
   methods: {
-    isImage(type) {
-      return type.indexOf('image') !== -1
+    initViewer() {
+      const viewer = new Viewer(this.$refs.viewer, {
+        inline: false,
+        navbar: false,
+        toolbar: {
+          zoomIn: 4,
+          zoomOut: 4,
+          oneToOne: 4,
+          reset: false,
+          prev: false,
+          play: false,
+          next: false,
+          rotateLeft: 4,
+          rotateRight: 4,
+          flipHorizontal: 4,
+          flipVertical: 4
+        }
+      })
+      this.viewer = viewer
+    },
+    showViewer() {
+      if (this.viewer) {
+        this.viewer.show()
+      }
     }
   }
 }
 </script>
+<style lang="scss">
+.viewer-transition{
+  transition: all 0.2s;
+}
+</style>
 
 <style lang="scss" scoped>
+.none {
+  display: none;
+}
 .thumbnails {
   position: absolute;
-    top: 12px;
+  top: 12px;
   height: 30px;
   .el-image {
     position: relative;
     width: 30px;
     height: 30px;
+    cursor: pointer;
   }
   i {
     position: relative;

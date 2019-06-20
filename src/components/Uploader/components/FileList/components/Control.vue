@@ -5,7 +5,7 @@
         :disabled="!showStart"
         type="success"
         icon="el-icon-caret-right"
-        size="small"
+        size="mini"
         plain
         @click="handleStartAll"
       >开始</el-button>
@@ -13,7 +13,7 @@
         :disabled="!showPause"
         type="default"
         icon="el-icon-video-pause"
-        size="small"
+        size="mini"
         plain
         @click="handlePauseAll"
       >暂停</el-button>
@@ -21,7 +21,7 @@
         :disabled="!showClear"
         type="danger"
         icon="el-icon-delete"
-        size="small"
+        size="mini"
         plain
         @click="handleClear"
       >清空</el-button>
@@ -102,7 +102,7 @@ export default {
   z-index: 2;
   .button {
     position: absolute;
-    top: 0;
+    top: 3px;
     right: 0;
   }
 }

@@ -100,6 +100,7 @@ export function formatTime(time, option) {
  * @return {[String]}
  */
 export function formatSize(filesize) {
+  filesize = parseInt(filesize)
   if (filesize == null || !filesize) {
     return '0 B'
   }
