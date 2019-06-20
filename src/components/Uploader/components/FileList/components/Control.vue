@@ -4,11 +4,11 @@
       <el-button
         :disabled="!showStart"
         type="success"
-        icon="el-icon-upload2"
+        icon="el-icon-caret-right"
         size="small"
         plain
         @click="handleStartAll"
-      >全部开始</el-button>
+      >开始</el-button>
       <el-button
         :disabled="!showPause"
         type="default"
@@ -16,7 +16,7 @@
         size="small"
         plain
         @click="handlePauseAll"
-      >全部暂停</el-button>
+      >暂停</el-button>
       <el-button
         :disabled="!showClear"
         type="danger"
@@ -46,15 +46,15 @@ export default {
   },
   computed: {
     showStart() {
-      // 开始按钮可用条件：列表非空，并且至少有一项没有在上传中或者上传成功
+      // 开始按钮可用条件：列表非空，并且至少有一项处于非暂停状态（初始化也将视作非暂停）
       if (this.list.length > 0) {
-        let started = 0
+        let paused = 0
         for (const item of this.list) {
-          if (item.isUploading || item.isComplete) {
-            started++
+          if (item.paused || item.isInitialization) {
+            paused++
           }
         }
-        return this.list.length !== started
+        return paused > 0
       }
       return false
     },
@@ -84,7 +84,13 @@ export default {
       this.$emit('pause')
     },
     handleClear() {
-      this.$emit('clear')
+      this.$confirm('清空上传列表（已上传的文件也会移除）?', '系统提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.$emit('clear')
+      })
     }
   }
 }

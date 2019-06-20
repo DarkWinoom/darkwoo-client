@@ -1,67 +1,58 @@
 <template>
   <div>
     <template v-if="row.croped">
-      <el-tooltip class="item" effect="dark" content="还原图片" placement="top">
-        <el-button size="medium" type="primary" icon="el-icon-refresh-left" circle />
-      </el-tooltip>
+      <el-button title="还原" size="medium" type="primary" icon="el-icon-refresh-left" circle />
     </template>
     <template v-else-if="row.canCrop">
-      <el-tooltip class="item" effect="dark" content="图片裁剪" placement="top">
-        <el-button size="medium" type="primary" icon="el-icon-scissors" circle />
-      </el-tooltip>
+      <el-button title="裁剪" size="medium" type="primary" icon="el-icon-scissors" circle />
     </template>
     <template v-if="row.error">
-      <el-tooltip class="item" effect="dark" content="重试" placement="top">
-        <el-button
-          size="medium"
-          type="warning"
-          icon="el-icon-refresh-right"
-          circle
-          @click="handleRetry(row.id)"
-        />
-      </el-tooltip>
+      <el-button
+        title="重试"
+        size="medium"
+        type="warning"
+        icon="el-icon-refresh-right"
+        circle
+        @click="handleRetry(row.id)"
+      />
     </template>
     <template v-else-if="row.isInitialization">
-      <el-tooltip class="item" effect="dark" content="开始上传" placement="top">
-        <el-button
-          size="medium"
-          type="success"
-          icon="el-icon-caret-right"
-          circle
-          @click="handleResume(row.id)"
-        />
-      </el-tooltip>
+      <el-button
+        title="开始"
+        size="medium"
+        type="success"
+        icon="el-icon-caret-right"
+        circle
+        @click="handleResume(row.id)"
+      />
     </template>
     <template v-else>
-      <el-tooltip class="item" effect="dark" content="继续上传" placement="top">
-        <el-button
-          v-if="row.paused"
-          size="medium"
-          type="success"
-          icon="el-icon-caret-right"
-          circle
-          @click="handleResume(row.id)"
-        />
-      </el-tooltip>
-      <el-tooltip class="item" effect="dark" content="暂停" placement="top">
-        <el-button
-          v-if="!row.paused"
-          size="medium"
-          icon="el-icon-video-pause"
-          circle
-          @click="handlePause(row.id)"
-        />
-      </el-tooltip>
-    </template>
-    <el-tooltip class="item" effect="dark" content="移除队列" placement="top">
       <el-button
+        v-if="row.paused"
+        title="继续"
         size="medium"
-        type="danger"
-        icon="el-icon-delete"
+        type="success"
+        icon="el-icon-caret-right"
         circle
-        @click="handleRemove(row.id)"
+        @click="handleResume(row.id)"
       />
-    </el-tooltip>
+      <el-button
+        v-if="!row.paused"
+        title="暂停"
+        size="medium"
+        icon="el-icon-video-pause"
+        circle
+        @click="handlePause(row.id)"
+      />
+    </template>
+    <el-button
+      title="移除"
+      size="medium"
+      type="danger"
+      icon="el-icon-delete"
+      circle
+      @click="handleRemove(row.id)"
+    />
   </div>
 </template>
 
@@ -99,7 +90,13 @@ export default {
       this.$emit('retry', id)
     },
     handleRemove(id) {
-      this.$emit('remove', id)
+      this.$confirm('将文件移除列表?', '系统提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.$emit('remove', id)
+      })
     }
   }
 }

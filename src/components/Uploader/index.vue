@@ -36,12 +36,13 @@
         </el-col>
         <el-col :span="16">
           <file-list
-            v-model="value"
+            :frame-show="value"
             :files="files"
             :queue-limit="queueLimit"
             :crop-open="cropOpen"
             @remove="remove"
           />
+          <image-crop v-model="showCrop" @close="showCrop = false" />
         </el-col>
       </el-row>
       <div slot="footer" class="dialog-footer">
@@ -68,10 +69,11 @@ import elDragDialog from '@/directive/el-drag-dialog'
 import { getToken } from '@/utils/auth'
 import { formatSize } from '@/utils'
 import FileList from './components/FileList'
+import ImageCrop from './components/ImageCrop'
 
 export default {
   name: 'Uploader',
-  version: '0.1.8',
+  version: '0.1.9',
   provide() {
     return {
       uploader: this
@@ -79,7 +81,8 @@ export default {
   },
   directives: { elDragDialog },
   components: {
-    FileList
+    FileList,
+    ImageCrop
   },
   props: {
     value: {
@@ -193,6 +196,7 @@ export default {
           return { id: file.id }
         }
       },
+      showCrop: true,
       files: []
     }
   },

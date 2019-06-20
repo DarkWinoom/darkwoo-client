@@ -53,8 +53,8 @@ export default {
   name: 'UploaderFileList',
   components: { FileControl, FileInformation, FileStatus, FileButton },
   props: {
-    value: {
-      // 隐藏 / 显示控件（状态）
+    // 监视上传框是否显示（用来更新状态）
+    frameShow: {
       type: Boolean,
       default: false
     },
@@ -109,7 +109,7 @@ export default {
     }
   },
   watch: {
-    value() {
+    frameShow() {
       for (const file of this.files) {
         this._actionCheck(file)
       }
@@ -227,22 +227,15 @@ export default {
       this._actionCheck(file)
     },
     handleRemove(id) {
-      const row = this._getRow(id)
       const file = this._getFile(id)
-      this.$confirm('将文件“' + row.name + '”移除列表?', '系统提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        const index = this.list.findIndex(item => item.id === id)
-        this.list.splice(index, 1)
-        this.$emit('remove', file)
-        this.key++
-        this.completeLock = false
-        if (this.isComplete) {
-          this.complete()
-        }
-      })
+      const index = this.list.findIndex(item => item.id === id)
+      this.list.splice(index, 1)
+      this.$emit('remove', file)
+      this.key++
+      this.completeLock = false
+      if (this.isComplete) {
+        this.complete()
+      }
     },
     complete() {
       // 列表中文件全部上传完成后回调
@@ -322,20 +315,14 @@ export default {
       }
     },
     handleClear() {
-      // 清空上传列表（提示）
-      this.$confirm('清空上传列表?', '系统提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        const files = this.files.concat()
-        for (const file of files) {
-          this.$emit('remove', file)
-        }
-        this.list = []
-        this.errors = []
-        this.loading = false
-      })
+      // 清空上传列表
+      const files = this.files.concat()
+      for (const file of files) {
+        this.$emit('remove', file)
+      }
+      this.list = []
+      this.errors = []
+      this.loading = false
     }
   }
 }

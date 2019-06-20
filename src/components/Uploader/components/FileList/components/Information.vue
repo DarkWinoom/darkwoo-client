@@ -4,7 +4,7 @@
       <template v-if="isImage(row.type)">
         <el-image :src="row.url" fit="contain">
           <div slot="error" class="image-slot">
-            <i class="el-icon-picture-outline" />
+            <i title="无法读取图片" class="el-icon-picture-outline" />
           </div>
         </el-image>
       </template>
@@ -27,7 +27,6 @@
         <span>{{ row.uploadedSize | formatSize }}</span>
         /
         <span>{{ row.size | formatSize }}</span>
-        <!-- <span v-show="row.croped" class="crop">（已裁剪）</span> -->
       </p>
     </div>
   </div>
@@ -85,10 +84,10 @@ export default {
 <style lang="scss" scoped>
 .thumbnails {
   position: absolute;
+    top: 12px;
   height: 30px;
   .el-image {
     position: relative;
-    top: 3px;
     width: 30px;
     height: 30px;
   }
