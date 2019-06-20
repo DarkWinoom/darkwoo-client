@@ -4,7 +4,14 @@
       <el-button title="还原" size="medium" type="primary" icon="el-icon-refresh-left" circle />
     </template>
     <template v-else-if="row.canCrop">
-      <el-button title="裁剪" size="medium" type="primary" icon="el-icon-scissors" circle />
+      <el-button
+        title="裁剪"
+        size="medium"
+        type="primary"
+        icon="el-icon-scissors"
+        circle
+        @click="handleCrop(row.id)"
+      />
     </template>
     <template v-if="row.error">
       <el-button
@@ -80,6 +87,9 @@ export default {
     }
   },
   methods: {
+    handleCrop(id) {
+      this.$emit('crop', id)
+    },
     handleResume(id) {
       this.$emit('resume', id)
     },

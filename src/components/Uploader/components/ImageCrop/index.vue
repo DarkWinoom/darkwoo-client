@@ -1,6 +1,7 @@
 <template>
   <el-dialog
     v-el-drag-dialog
+    class="cropper"
     :visible.sync="value"
     :close-on-click-modal="false"
     :close-on-press-escape="false"
@@ -8,12 +9,12 @@
     :before-close="handleClose"
     title="图片裁剪"
   >
-    <div class="cropper-content">
-      <div class="cropper" style="text-align:center">
+    <template v-if="!error">
+      <div class="content">
         <vue-cropper
           ref="cropper"
           v-loading="loading"
-          :img="option.img"
+          :img="image"
           :output-size="option.size"
           :auto-crop="option.autoCrop"
           :auto-crop-width="option.autoCropWidth"
@@ -25,9 +26,47 @@
           :center-box="option.centerBox"
         />
       </div>
-    </div>
+      <el-button-group>
+        <el-button
+          type="default"
+          title="放大"
+          size="medium"
+          icon="el-icon-plus"
+          plain
+          @click="changeScale(1)"
+        />
+        <el-button
+          type="default"
+          title="缩小"
+          size="medium"
+          icon="el-icon-minus"
+          plain
+          @click="changeScale(-1)"
+        />
+        <el-button
+          type="default"
+          title="向左旋转"
+          size="medium"
+          icon="el-icon-refresh-left"
+          plain
+          @click="rotateLeft"
+        />
+        <el-button
+          type="default"
+          title="向右旋转"
+          size="medium"
+          icon="el-icon-refresh-right"
+          plain
+          @click="rotateRight"
+        />
+      </el-button-group>
+    </template>
+    <template v-else>
+      <p>读取图片失败</p>
+      <p>文件可能已经损坏</p>
+    </template>
     <div slot="footer" class="dialog-footer">
-      <el-button size="medium" @click="handleClose">取 消</el-button>
+      <el-button v-show="!error" size="medium" @click="handleClose">取 消</el-button>
       <el-button type="primary" size="medium" :loading="loading" @click="finish">确认</el-button>
     </div>
   </el-dialog>
@@ -45,14 +84,19 @@ export default {
       // 隐藏 / 显示控件
       type: Boolean,
       default: false
+    },
+    file: {
+      // 传入的图片文件
+      type: File,
+      default: undefined
     }
   },
   data() {
     return {
       // 裁剪组件的基础配置option
+      error: false,
+      image: undefined,
       option: {
-        img:
-          'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif', // 裁剪图片的地址
         outputSize: 1, // 裁剪生成图片的质量
         autoCrop: true, // 是否默认生成截图框
         autoCropWidth: 200, // 默认生成截图框宽度
@@ -66,17 +110,57 @@ export default {
       loading: false
     }
   },
+  watch: {
+    value(value) {
+      this.init()
+      if (value) {
+        const fr = new FileReader()
+        fr.onload = e => {
+          const img = new Image()
+          img.src = fr.result
+          img.onerror = e => {
+            this.error = true
+          }
+          img.onload = () => {
+            this.image = img.src
+          }
+        }
+        fr.onerror = e => {
+          this.error = true
+        }
+        fr.readAsDataURL(this.file)
+      }
+    }
+  },
   methods: {
-    // 点击裁剪，这一步是可以拿到处理后的地址
+    init() {
+      this.image =
+        'data:image/png;base64,UmFyIRoHAQAzkrXlCgEFBgAFAQGAgABRBebzLAIDC4gABIgAIPex5LiAAAAQ5rWL6K+V55SodHh0LnR4dAoDApWmBesFmNQBdGVzdLLiytQdd1ZRAwUEAA=='
+      this.loading = false
+      this.error = false
+    },
+    changeScale(num) {
+      num = num || 1
+      this.$refs.cropper.changeScale(num)
+    },
+    rotateLeft() {
+      this.$refs.cropper.rotateLeft()
+    },
+    rotateRight() {
+      this.$refs.cropper.rotateRight()
+    },
     finish() {
-      this.$refs.cropper.getCropBlob(data => {
-        this.loading = true
-        // 上传
-        console.log(data)
-        setTimeout(() => {
-          this.loading = false
-        }, 500)
-      })
+      if (this.error) {
+        this.$emit('close')
+      } else {
+        this.$refs.cropper.getCropBlob(data => {
+          console.log(data)
+          this.loading = true
+          setTimeout(() => {
+            this.loading = false
+          }, 500)
+        })
+      }
     },
     handleClose() {
       this.$emit('close')
@@ -85,11 +169,20 @@ export default {
 }
 </script>
 
-<style lang="scss" scoped>
-.cropper-content {
-  .cropper {
-    width: auto;
-    height: 300px;
+<style lang="scss">
+.cropper {
+  .el-dialog__body {
+    padding: 10px 20px 0;
   }
+}
+</style>
+<style lang="scss" scoped>
+.content {
+  width: auto;
+  height: 300px;
+  padding-bottom: 20px;
+}
+.el-button-group {
+  display: block;
 }
 </style>

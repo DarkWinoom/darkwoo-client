@@ -30,6 +30,7 @@
             <div v-show="!scope.row.isComplete" slot-scope="scope">
               <file-button
                 :data="scope.row"
+                @crop="handleCrop"
                 @retry="handleRetry"
                 @resume="handleResume"
                 @pause="handlePause"
@@ -264,6 +265,9 @@ export default {
       }
       this.completeLock = true
       console.log('completed!')
+    },
+    handleCrop(id) {
+      this.$emit('crop', id)
     },
     handleStartAll() {
       // 全部开始

@@ -40,9 +40,10 @@
             :files="files"
             :queue-limit="queueLimit"
             :crop-open="cropOpen"
+            @crop="crop"
             @remove="remove"
           />
-          <image-crop v-model="showCrop" @close="showCrop = false" />
+          <image-crop v-model="showCrop" :file="cropFile" @close="showCrop = false" />
         </el-col>
       </el-row>
       <div slot="footer" class="dialog-footer">
@@ -73,7 +74,7 @@ import ImageCrop from './components/ImageCrop'
 
 export default {
   name: 'Uploader',
-  version: '0.1.10',
+  version: '0.2.11',
   provide() {
     return {
       uploader: this
@@ -196,7 +197,8 @@ export default {
           return { id: file.id }
         }
       },
-      showCrop: true,
+      showCrop: false,
+      cropFile: undefined,
       files: []
     }
   },
@@ -384,6 +386,13 @@ export default {
     fileError(rootFile, file, message, chunk) {},
     complete(files, message) {
       console.log(files, message)
+    },
+    crop(id) {
+      const file = this.files.find(item => {
+        return item.id === id
+      })
+      this.cropFile = file.file
+      this.showCrop = true
     },
     remove(file) {
       this.uploader.removeFile(file)
