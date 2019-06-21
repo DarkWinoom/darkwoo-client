@@ -12,26 +12,21 @@
     :width="width"
     top="5vh"
   >
-    <template v-if="support">
+    <support-check :support="support">
       <el-row :gutter="20">
         <el-col :span="8">
-          <div class="el-upload el-upload--text">
-            <div ref="drop" class="el-upload-dragger">
-              <i class="el-icon-upload" />
-              <div class="el-upload__text">
-                将文件拖到此处，或
-                <em>点击上传</em>
-              </div>
-            </div>
-          </div>
-          <div class="el-upload__tip">
-            <template v-if="queueLimit > 0">
-              <p v-if="queueLimit === 1">请选择单一文件</p>
-              <p v-else>数量限制：{{ queueLimit }}</p>
-            </template>
-            <p>格式限制：{{ typeLimitTips }}</p>
-            <p v-show="cropOpen && cropFixed">尺寸建议：{{ cropWidth }} x {{ cropHeight }}</p>
-            <p>单文件大小限制：{{ sizeLimitTips }}</p>
+          <div ref="drop">
+            <drop-field
+              :queue-limit="queueLimit"
+              :size-limit="sizeLimit"
+              :type-limit="typeLimit"
+              :crop-show="cropOpen"
+              :crop-width="cropWidth"
+              :crop-height="cropHeight"
+            >
+              将文件拖到此处，或
+              <em>点击上传</em>
+            </drop-field>
           </div>
         </el-col>
         <el-col :span="16">
@@ -40,27 +35,20 @@
             :files="files"
             :queue-limit="queueLimit"
             :crop-open="cropOpen"
-            @crop="crop"
-            @remove="remove"
+            :crop-width="cropWidth"
+            :crop-height="cropHeight"
+            :crop-fixed="cropFixed"
+            :crop-output-quantity="cropOutputQuantity"
+            :crop-output-type="cropOutputType"
+            @add-file="handleAddFile"
+            @remove="handleRemove"
           />
-          <image-crop v-model="showCrop" :file="cropFile" @close="showCrop = false" />
         </el-col>
       </el-row>
-      <div slot="footer" class="dialog-footer">
-        <el-button size="medium" @click="handleClose">关闭</el-button>
-      </div>
-    </template>
-    <template v-else>
-      <div class="el-upload el-upload--text">
-        <div class="el-upload-dragger">
-          <i class="el-icon-warning" />
-          <div class="el-upload__text">浏览器不支持该功能，请使用IE10以上或其他浏览器！</div>
-        </div>
-      </div>
-      <div slot="footer" class="dialog-footer">
-        <el-button size="medium" @click="handleClose">关闭</el-button>
-      </div>
-    </template>
+    </support-check>
+    <div slot="footer" class="dialog-footer">
+      <el-button size="medium" @click="handleClose">关闭</el-button>
+    </div>
   </el-dialog>
 </template>
 <script>
@@ -68,13 +56,13 @@ import MimeTypes from 'mime-types'
 import Uploader from 'simple-uploader.js'
 import elDragDialog from '@/directive/el-drag-dialog'
 import { getToken } from '@/utils/auth'
-import { formatSize } from '@/utils'
+import SupportCheck from './components/SupportCheck'
+import DropField from './components/DropField'
 import FileList from './components/FileList'
-import ImageCrop from './components/ImageCrop'
 
 export default {
   name: 'Uploader',
-  version: '0.2.11',
+  version: '0.2.12',
   provide() {
     return {
       uploader: this
@@ -82,8 +70,9 @@ export default {
   },
   directives: { elDragDialog },
   components: {
-    FileList,
-    ImageCrop
+    SupportCheck,
+    DropField,
+    FileList
   },
   props: {
     value: {
@@ -136,26 +125,22 @@ export default {
       default: true
     },
     cropWidth: {
-      // 初始截取框宽度
+      // 初始截取框宽度（0为默认值，容器的80%）
       type: Number,
-      default: 120
+      default: 0
     },
     cropHeight: {
-      // 初始截取框高度
+      // 初始截取框高度（0为默认值，容器的80%）
       type: Number,
-      default: 120
+      default: 0
     },
     cropFixed: {
-      // 是否开启截图框宽高固定比例
-      type: Boolean,
+      // 截图框宽高控制
+      // true 固定大小，无法改变
+      // [宽度, 高度] 只能按照比例改变（如[1, 1]）
+      // false 不固定大小和比例，可自由改变
+      type: [Boolean, Array],
       default: false
-    },
-    cropFixedRatio: {
-      // 截图框的宽高比例（需要开启固定比例）
-      type: Array,
-      default() {
-        return [1, 1]
-      }
     },
     cropOutputQuantity: {
       // 输出图片质量（0.1 - 1）
@@ -197,14 +182,12 @@ export default {
           return { id: file.id }
         }
       },
-      showCrop: false,
-      cropFile: undefined,
       files: []
     }
   },
   computed: {
     getHeader() {
-      return { 'Access-Token': getToken() }
+      return { 'X-Token': getToken() }
     },
     dialogTitle() {
       return this.title ? this.title : '文件上传'
@@ -221,40 +204,6 @@ export default {
         }
       }
       return language.toLowerCase()
-    },
-    typeLimitTips() {
-      // 格式转换成文字提示
-      if (this.typeLimit.length > 0) {
-        const typeTips = []
-        for (const type of this.typeLimit) {
-          let suffix
-          switch (type) {
-            case 'image':
-              suffix = '图片'
-              break
-            case 'video':
-              suffix = '视频'
-              break
-            case 'audio':
-              suffix = '音频'
-              break
-            default:
-              suffix = type
-          }
-          typeTips.push(suffix)
-        }
-        return typeTips.join(', ') + '格式'
-      } else {
-        return '不限'
-      }
-    },
-    sizeLimitTips() {
-      // 大小转换成文字提示
-      if (this.sizeLimit) {
-        return formatSize(this.sizeLimit)
-      } else {
-        return '不限'
-      }
     }
   },
   created() {
@@ -318,7 +267,7 @@ export default {
       setTimeout(() => {
         this.$notify({
           title: title,
-          message: '"' + file.name + '"的添加已被忽略',
+          message: '文件"' + file.name + '"的添加已被忽略',
           type: type,
           duration: 6000
         })
@@ -383,18 +332,13 @@ export default {
         this.files = [...this.files, ...files]
       }
     },
-    fileError(rootFile, file, message, chunk) {},
-    complete(files, message) {
-      console.log(files, message)
+    fileError(rootFile, file, message, chunk) {
+      console.log(file, message)
     },
-    crop(id) {
-      const file = this.files.find(item => {
-        return item.id === id
-      })
-      this.cropFile = file.file
-      this.showCrop = true
+    handleAddFile(file) {
+      this.uploader.addFile(file)
     },
-    remove(file) {
+    handleRemove(file) {
       this.uploader.removeFile(file)
     },
     handleClose() {
@@ -435,31 +379,6 @@ export default {
         margin: 0;
       }
     }
-  }
-}
-</style>
-
-<style lang="scss" scoped>
-.el-upload {
-  display: block;
-  margin-top: 10px;
-  .el-upload-dragger {
-    width: 100%;
-  }
-}
-.el-icon-warning {
-  font-size: 67px;
-  color: #c0c4cc;
-  margin: 40px 0 16px;
-  line-height: 50px;
-}
-.el-upload__tip {
-  font-size: 14px;
-  color: #909399;
-  line-height: 28px;
-  margin-top: 10px;
-  p {
-    margin: 0;
   }
 }
 </style>

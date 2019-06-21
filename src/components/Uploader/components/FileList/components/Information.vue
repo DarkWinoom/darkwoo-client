@@ -15,6 +15,7 @@
     </div>
     <div class="information">
       <p class="name">
+        <el-tag v-show="row.croped" size="mini" type="warning">已裁剪</el-tag>
         <span>{{ row.name }}</span>
       </p>
       <el-progress
@@ -65,6 +66,7 @@ export default {
           type: '',
           url: '',
           size: '',
+          croped: '',
           progress: '',
           isComplete: ''
         }

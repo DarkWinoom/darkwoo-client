@@ -39,6 +39,18 @@
             </div>
           </el-table-column>
         </el-table>
+        <file-crop
+          :id="cropId"
+          v-model="showCrop"
+          :file="cropFile"
+          :crop-width="cropWidth"
+          :crop-height="cropHeight"
+          :crop-fixed="cropFixed"
+          :crop-output-quantity="cropOutputQuantity"
+          :crop-output-type="cropOutputType"
+          @complete="handleCropComplete"
+          @close="showCrop = false"
+        />
       </el-tab-pane>
     </el-tabs>
   </div>
@@ -49,10 +61,17 @@ import FileControl from './components/Control'
 import FileInformation from './components/Information'
 import FileStatus from './components/Status'
 import FileButton from './components/Button'
+import FileCrop from './components/Crop'
 
 export default {
   name: 'UploaderFileList',
-  components: { FileControl, FileInformation, FileStatus, FileButton },
+  components: {
+    FileControl,
+    FileInformation,
+    FileStatus,
+    FileButton,
+    FileCrop
+  },
   props: {
     // 监视上传框是否显示（用来更新状态）
     frameShow: {
@@ -72,6 +91,26 @@ export default {
     cropOpen: {
       type: Boolean,
       default: true
+    },
+    cropWidth: {
+      type: Number,
+      default: 0
+    },
+    cropHeight: {
+      type: Number,
+      default: 0
+    },
+    cropFixed: {
+      type: [Boolean, Array],
+      default: false
+    },
+    cropOutputQuantity: {
+      type: Number,
+      default: 1
+    },
+    cropOutputType: {
+      type: String,
+      default: 'png'
     }
   },
   data() {
@@ -90,8 +129,14 @@ export default {
       index: 0, // 文件索引（按新增顺序）
       list: [],
       lines: 4, // 显示的文件行数
-      completeLock: false
+      completeLock: false,
       // 某些情况下complete()方法会被多次调用，加入锁可保证只会执行一次
+
+      cropMarkQueue: undefined, // 裁剪成功后调用，queue标记
+      showCrop: false, // 是否显示裁剪框
+      cropId: undefined, // 传入裁剪文件的id
+      cropFile: undefined, // 传入裁剪的文件（type File）
+      cropCache: [] // 已裁剪文件缓存，id => file
     }
   },
   computed: {
@@ -141,8 +186,15 @@ export default {
       const files_id = this.list.map(item => item.id)
       if (!files_id.includes(rowFile.id)) {
         const isImage = rowFile.fileType.indexOf('image') !== -1
+        let queue = index
+        let croped = false
+        if (this.cropMarkQueue) {
+          queue = this.cropMarkQueue
+          croped = true
+          this.cropMarkQueue = undefined
+        }
         const file = {
-          queue: index,
+          queue: queue,
           file: rowFile.file,
           id: rowFile.id, // 原文件列表和新生成的文件列表通过id进行对应
           type: rowFile.fileType,
@@ -155,7 +207,7 @@ export default {
           uploadedSize: 0, // 已上传的大小
           paused: false, // 是否已暂停
           error: false, // 是否出错
-          croped: false, // 是否已经被裁剪
+          croped: croped, // 是否已经被裁剪
           canCrop: this.cropOpen && isImage, // 是否显示裁剪按钮
           isRealImage: false, // 是否是真实的图片
           isInitialization: true, // 是否新加入的文件（用于显示“开始”按钮）
@@ -211,14 +263,14 @@ export default {
       file.retry()
       this._actionCheck(file)
     },
-    handleRemove(id) {
+    handleRemove(id, completeCheck = true) {
       const file = this._getFile(id)
       const index = this.list.findIndex(item => item.id === id)
       this.list.splice(index, 1)
       this.$emit('remove', file)
       this.key++
-      if (this.isComplete) {
-        this.complete()
+      if (completeCheck && this.isComplete) {
+        this._complete()
       }
     },
     _getFile(value, field = 'id') {
@@ -267,7 +319,24 @@ export default {
       console.log('completed!')
     },
     handleCrop(id) {
-      this.$emit('crop', id)
+      // 点击裁剪按钮
+      const row = this._getRow(id)
+      this.cropId = id
+      this.cropFile = row.file
+      this.showCrop = true
+    },
+    handleCropComplete(id, name, blob) {
+      // 裁剪确认回调
+      this.showCrop = false
+      const row = this._getRow(id)
+      console.log(row)
+      this.cropMarkQueue = row.queue
+      this.handleRemove(id, false)
+      const file = new File([blob], name, {
+        type: blob.type,
+        endings: 'transparent'
+      })
+      this.$emit('add-file', file)
     },
     handleStartAll() {
       // 全部开始

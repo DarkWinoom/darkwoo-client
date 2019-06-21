@@ -10,7 +10,7 @@
     title="图片裁剪"
   >
     <template v-if="!error">
-      <div class="content">
+      <div class="content" :style="{'height':height}">
         <vue-cropper
           ref="cropper"
           v-loading="loading"
@@ -66,8 +66,10 @@
       <p>文件可能已经损坏</p>
     </template>
     <div slot="footer" class="dialog-footer">
-      <el-button v-show="!error" size="medium" @click="handleClose">取 消</el-button>
-      <el-button type="primary" size="medium" :loading="loading" @click="finish">确认</el-button>
+      <el-button size="medium" @click="handleClose">关闭</el-button>
+      <el-button v-show="!error" type="primary" size="medium" :loading="loading" @click="finish">
+        {{ loading? '裁剪中':'确认' }}
+      </el-button>
     </div>
   </el-dialog>
 </template>
@@ -85,35 +87,89 @@ export default {
       type: Boolean,
       default: false
     },
+    id: {
+    // 传入图片的识别id
+      type: Number,
+      default: undefined
+    },
     file: {
       // 传入的图片文件
       type: File,
       default: undefined
+    },
+    cropWidth: {
+      // 初始截取框宽度
+      type: Number,
+      default: 0
+    },
+    cropHeight: {
+      // 初始截取框高度
+      type: Number,
+      default: 0
+    },
+    cropFixed: {
+      // 截图框宽高控制
+      // true 固定大小，无法改变
+      // [宽度, 高度] 只能按照比例改变（如[1, 1]）
+      // false 不固定大小和比例，可自由改变
+      type: [Boolean, Array],
+      default: false
+    },
+    cropOutputQuantity: {
+      // 输出图片质量（0.1 - 1）
+      type: Number,
+      default: 1
+    },
+    cropOutputType: {
+      // 输出图片格式（支持jpg和png）
+      type: String,
+      default: 'png'
     }
   },
   data() {
+    let fixed = true
+    let fixedNumber = [1, 1]
+    let fixedBox = false
+    if (this.cropFixed === true) {
+      fixed = false
+      fixedBox = true
+    } else if (this.cropFixed === false) {
+      fixed = false
+    } else {
+      fixedNumber = this.cropFixed
+    }
     return {
       // 裁剪组件的基础配置option
       error: false,
       image: undefined,
       option: {
-        outputSize: 1, // 裁剪生成图片的质量
+        outputSize: this.cropOutputQuantity, // 裁剪生成图片的质量
+        outputType: this.cropOutputType,
         autoCrop: true, // 是否默认生成截图框
-        autoCropWidth: 200, // 默认生成截图框宽度
-        autoCropHeight: 200, // 默认生成截图框高度
-        fixed: false, // 是否开启截图框宽高固定比例
-        fixedNumber: [1, 1], // 截图框的宽高比例
-        full: true, // 是否输出原图比例的截图
-        fixedBox: false,
-        centerBox: true
+        autoCropWidth: this.cropWidth, // 默认生成截图框宽度
+        autoCropHeight: this.cropHeight, // 默认生成截图框高度
+        fixed: fixed, // 是否开启截图框宽高固定比例
+        fixedNumber: fixedNumber, // 截图框的宽高比例
+        fixedBox: fixedBox,
+        high: false,
+        mode: 'auto 100%'
       },
       loading: false
     }
   },
+  computed: {
+    height() {
+      if (this.cropHeight <= 300) {
+        return '300px'
+      } else {
+        return this.cropHeight + 'px'
+      }
+    }
+  },
   watch: {
     value(value) {
-      this.init()
       if (value) {
+        this.init()
         const fr = new FileReader()
         fr.onload = e => {
           const img = new Image()
@@ -140,25 +196,32 @@ export default {
       this.error = false
     },
     changeScale(num) {
+      if (this.loading) {
+        return false
+      }
       num = num || 1
       this.$refs.cropper.changeScale(num)
     },
     rotateLeft() {
+      if (this.loading) {
+        return false
+      }
       this.$refs.cropper.rotateLeft()
     },
     rotateRight() {
+      if (this.loading) {
+        return false
+      }
       this.$refs.cropper.rotateRight()
     },
     finish() {
       if (this.error) {
         this.$emit('close')
       } else {
+        this.loading = true
         this.$refs.cropper.getCropBlob(data => {
-          console.log(data)
-          this.loading = true
-          setTimeout(() => {
-            this.loading = false
-          }, 500)
+          this.$emit('complete', this.id, this.file.name, data)
+          this.loading = false
         })
       }
     },
@@ -180,7 +243,7 @@ export default {
 .content {
   width: auto;
   height: 300px;
-  padding-bottom: 20px;
+  margin-bottom: 20px;
 }
 .el-button-group {
   display: block;

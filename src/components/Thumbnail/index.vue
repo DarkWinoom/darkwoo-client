@@ -21,6 +21,9 @@
         :size-limit="500 * 1024 * 1024"
         :type-limit="['image', 'video']"
         :queue-limit="0"
+        :crop-width="400"
+        :crop-height="300"
+        :crop-fixed="[4,3]"
         @close="uploaderToggle(false)"
       />
       <div class="tips">
