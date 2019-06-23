@@ -31,6 +31,7 @@
               <file-button
                 :data="scope.row"
                 @crop="handleCrop"
+                @cropDrop="handleCropDrop"
                 @retry="handleRetry"
                 @resume="handleResume"
                 @pause="handlePause"
@@ -132,11 +133,12 @@ export default {
       completeLock: false,
       // 某些情况下complete()方法会被多次调用，加入锁可保证只会执行一次
 
-      cropMarkQueue: undefined, // 裁剪成功后调用，queue标记
+      cropMode: undefined, // 非可选值时将会调用裁剪或还原覆盖（可选值sure或drop）
+      cropQueue: undefined, // 裁剪或还原成功后调用，queue标记
       showCrop: false, // 是否显示裁剪框
       cropId: undefined, // 传入裁剪文件的id
       cropFile: undefined, // 传入裁剪的文件（type File）
-      cropCache: [] // 已裁剪文件缓存，id => file
+      cropCache: [] // 已裁剪文件缓存，queue => file
     }
   },
   computed: {
@@ -188,10 +190,11 @@ export default {
         const isImage = rowFile.fileType.indexOf('image') !== -1
         let queue = index
         let croped = false
-        if (this.cropMarkQueue) {
-          queue = this.cropMarkQueue
+        if (this.cropMode === 'sure') {
+          queue = this.cropQueue
           croped = true
-          this.cropMarkQueue = undefined
+        } else if (this.cropMode === 'drop') {
+          queue = this.cropQueue
         }
         const file = {
           queue: queue,
@@ -240,6 +243,9 @@ export default {
           }
           fr.readAsDataURL(rowFile.file)
         }
+        setTimeout(() => {
+          this.cropMode = undefined
+        }, 10)
       }
     },
     handleResume(id) {
@@ -321,22 +327,42 @@ export default {
     handleCrop(id) {
       // 点击裁剪按钮
       const row = this._getRow(id)
-      this.cropId = id
-      this.cropFile = row.file
-      this.showCrop = true
+      if (row.isUploading) {
+        this.$message.error('文件正在上传中，无法执行操作')
+      } else {
+        this.cropId = id
+        this.cropFile = row.file
+        this.showCrop = true
+      }
     },
     handleCropComplete(id, name, blob) {
       // 裁剪确认回调
-      this.showCrop = false
       const row = this._getRow(id)
-      console.log(row)
-      this.cropMarkQueue = row.queue
+      this.showCrop = false
+      this.cropMode = 'sure'
+      this.cropQueue = row.queue
+      this.cropCache[row.queue] = row.file
       this.handleRemove(id, false)
       const file = new File([blob], name, {
         type: blob.type,
         endings: 'transparent'
       })
       this.$emit('add-file', file)
+    },
+    handleCropDrop(queue) {
+      // 点击裁剪还原按钮
+      const row = this._getRow(queue, 'queue')
+      if (row.isUploading) {
+        this.$message.error('文件正在上传中，无法执行操作')
+      } else if (this.cropCache[queue]) {
+        this.cropMode = 'drop'
+        this.cropQueue = queue
+        this.handleRemove(row.id, false)
+        this.$emit('add-file', this.cropCache[queue])
+        delete this.cropCache[queue]
+      } else {
+        this.$message.error('原图片数据已丢失，无法还原')
+      }
     },
     handleStartAll() {
       // 全部开始
@@ -360,6 +386,7 @@ export default {
       }
       this.list = []
       this.errors = []
+      this.cropCache = []
       this.loading = false
     }
   }

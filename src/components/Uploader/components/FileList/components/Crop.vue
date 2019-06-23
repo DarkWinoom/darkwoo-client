@@ -65,6 +65,7 @@
       <p>读取图片失败</p>
       <p>文件可能已经损坏</p>
     </template>
+    <canvas v-show="false" ref="canvas" :width="cropWidth" :height="cropHeight" />
     <div slot="footer" class="dialog-footer">
       <el-button size="medium" @click="handleClose">关闭</el-button>
       <el-button v-show="!error" type="primary" size="medium" :loading="loading" @click="finish">
@@ -151,8 +152,10 @@ export default {
         fixed: fixed, // 是否开启截图框宽高固定比例
         fixedNumber: fixedNumber, // 截图框的宽高比例
         fixedBox: fixedBox,
+        centerBox: true,
         high: false,
-        mode: 'auto 100%'
+        original: true,
+        infoTrue: true
       },
       loading: false
     }
@@ -233,10 +236,16 @@ export default {
 </script>
 
 <style lang="scss">
+.vue-cropper{
+  background: #fff!important;
+}
 .cropper {
   .el-dialog__body {
     padding: 10px 20px 0;
   }
+}
+.cropper-modal{
+  background: transparent!important;
 }
 </style>
 <style lang="scss" scoped>

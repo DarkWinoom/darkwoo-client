@@ -6,11 +6,8 @@
 </template>
 
 <script>
-import { formatSize } from '@/utils'
-import {
-  secondsToStr
-  // data2blob
-} from './utils'
+import { formatSize, secondsToStr } from '@/utils'
+
 export default {
   filters: {
     formatSpeed(speed) {
