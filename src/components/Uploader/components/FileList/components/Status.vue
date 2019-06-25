@@ -20,7 +20,9 @@ export default {
     },
     formatStatus(row) {
       // 剩余时间文本（状态）
-      if (row.isComplete) {
+      if (!row.computed) {
+        return '正在计算'
+      } else if (row.isComplete) {
         return '上传成功'
       } else if (row.error) {
         return '上传失败'

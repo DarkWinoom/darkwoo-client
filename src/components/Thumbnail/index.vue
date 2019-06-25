@@ -6,17 +6,17 @@
         <el-button
           type="text"
           icon="el-icon-edit-outline"
-          @click="uploadShow = true"
+          @click="showModal"
         >{{ image? '更换':'新增' }}</el-button>
         <el-button v-if="image" type="text" icon="el-icon-close" @click="handleRemoveImage">移除</el-button>
       </div>
     </div>
     <div class="text item">
       <div v-if="image" class="thumbnails">
-        <el-image :src="image" alt @click="uploadShow = true" />
+        <el-image :src="image" alt @click="showModal" />
       </div>
       <uploader-modal
-        v-model="uploadShow"
+        v-model="uploadModalCount"
         target="https://httpbin.org/post"
         :size-limit="500 * 1024 * 1024"
         :type-limit="['image', 'video']"
@@ -24,7 +24,6 @@
         :crop-width="400"
         :crop-height="300"
         :crop-fixed="[4,3]"
-        @close="uploadShow = false"
       />
       <div class="tips">
         <p>推荐尺寸：{{ width }}像素 × {{ height }}像素</p>
@@ -76,7 +75,7 @@ export default {
   },
   data() {
     return {
-      uploadShow: false,
+      uploadModalCount: 0,
       image: this.value
     }
   },
@@ -86,6 +85,9 @@ export default {
     }
   },
   methods: {
+    showModal() {
+      this.uploadModalCount++
+    },
     handleRemoveImage() {
       this.$confirm(
         '此操作将取消当前' + this.title + ', 是否继续?',

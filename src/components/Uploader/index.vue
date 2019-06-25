@@ -18,6 +18,7 @@
       </el-col>
       <el-col :span="16">
         <file-list
+          ref="fileList"
           :dialog-visible="dialogVisible"
           :files="files"
           :queue-limit="queueLimit"
@@ -36,6 +37,7 @@
 </template>
 <script>
 import MimeTypes from 'mime-types'
+import SparkMD5 from 'spark-md5'
 import Uploader from 'simple-uploader.js'
 import { getToken } from '@/utils/auth'
 import SupportCheck from './components/SupportCheck'
@@ -44,7 +46,7 @@ import FileList from './components/FileList'
 
 export default {
   name: 'Uploader',
-  version: '0.2.15',
+  version: '0.2.16',
   provide() {
     return {
       uploader: this
@@ -144,7 +146,14 @@ export default {
       // simple-uploader 配置
       simpleUploaderOptions: {
         target: this.target,
-        testChunks: false,
+        testChunks: true,
+        checkChunkUploadedByResponse: function(chunk, message) {
+          const objMessage = JSON.parse(message)
+          if (objMessage.skipUpload) {
+            return true
+          }
+          return (objMessage.uploaded || []).indexOf(chunk.offset + 1) >= 0
+        },
         fileParameterName: this.field,
         successStatuses: [200, 201, 202],
         permanentErrors: [206, 404, 415, 500, 501],
@@ -154,7 +163,10 @@ export default {
           return this.headers ? this.headers : {}
         },
         query: function(file, chunk) {
-          return { id: file.id }
+          console.log(file, chunk)
+          return {
+            id: file.id
+          }
         }
       },
       files: []
@@ -245,6 +257,19 @@ export default {
         })
       }, 100)
     },
+    computeMD5(file) {
+      const fileReader = new FileReader()
+      fileReader.readAsArrayBuffer(file.file)
+      fileReader.onload = e => {
+        file.uniqueIdentifier = SparkMD5.ArrayBuffer.hash(e.target.result)
+        this.$refs.fileList.fileComputedDown(file.id)
+        console.log('file "' + file.name + '" md5 donw!')
+      }
+      fileReader.onerror = function() {
+        this.$refs.fileList.fileComputedDown(file.id)
+        console.log('file "' + file.name + '" md5 error!')
+      }
+    },
     fileAdded(file, event) {
       // 格式与大小检测
       if (this.queueLimit > 0 && this.files.length >= this.queueLimit) {
@@ -282,6 +307,7 @@ export default {
         this.ignoreNotify(file, '文件大小超过限制')
         return false
       }
+      this.computeMD5(file)
     },
     fileRemoved(file) {
       const index = this.files.findIndex(item => item.id === file.id)

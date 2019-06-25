@@ -213,6 +213,7 @@ export default {
           speed: 0,
           timeRemaining: 0,
           uploadedSize: 0, // 已上传的大小
+          computed: false, // 为true表示计算md5成功（运行上传）
           paused: false, // 是否已暂停
           error: false, // 是否出错
           croped: croped, // 是否已经被裁剪
@@ -252,6 +253,10 @@ export default {
           this.cropMode = undefined
         }, 10)
       }
+    },
+    fileComputedDown(id) {
+      const row = this._getRow(id)
+      row.computed = true
     },
     handleResume(id) {
       // 继续 & 开始下载

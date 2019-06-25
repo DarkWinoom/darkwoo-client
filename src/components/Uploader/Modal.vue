@@ -2,7 +2,7 @@
   <el-dialog
     v-el-drag-dialog
     class="uploader"
-    :visible.sync="value"
+    :visible.sync="showModal"
     :modal-append-to-body="false"
     :close-on-click-modal="false"
     :close-on-press-escape="false"
@@ -13,7 +13,7 @@
     top="5vh"
   >
     <uploader
-      :dialog-visible="value"
+      :dialog-visible="showModal"
       :field="field"
       :target="target"
       :headers="headers"
@@ -44,8 +44,8 @@ export default {
   components: { Uploader },
   props: {
     value: {
-      type: Boolean,
-      default: false
+      type: [String, Number],
+      default: undefined
     },
     title: {
       // dialog框显示的标题名称
@@ -111,10 +111,16 @@ export default {
   },
   data() {
     return {
+      showModal: false,
       // 上传框总宽度
       width: '890px',
       // 显示的标题
       showTitle: ''
+    }
+  },
+  watch: {
+    value() {
+      this.showModal = true
     }
   },
   mounted() {
@@ -124,7 +130,7 @@ export default {
   },
   methods: {
     handleClose() {
-      this.$emit('close')
+      this.showModal = false
     }
   }
 }
