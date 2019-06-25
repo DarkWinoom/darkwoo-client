@@ -75,7 +75,7 @@ export default {
   },
   props: {
     // 监视上传框是否显示（用来更新状态）
-    frameShow: {
+    dialogVisible: {
       type: Boolean,
       default: false
     },
@@ -157,9 +157,14 @@ export default {
     }
   },
   watch: {
-    frameShow() {
+    dialogVisible(value) {
+      if (this.isComplete) return true
       for (const file of this.files) {
-        this._actionCheck(file)
+        if (value) {
+          this._actionCheck(file)
+        } else {
+          this.handlePause(file.id)
+        }
       }
     },
     files(value) {
@@ -291,13 +296,13 @@ export default {
     },
     _actionCheck(file) {
       const row = this._getRow(file.id)
-      row.isInitialization = false
       row.paused = file.paused
       row.error = file.error
       row.isUploading = file.isUploading()
     },
     _fileProgress(file) {
       const row = this._getRow(file.id)
+      row.isInitialization = false
       row.progress = file.progress()
       row.speed = file.averageSpeed
       row.timeRemaining = file.timeRemaining()

@@ -6,16 +6,16 @@
         <el-button
           type="text"
           icon="el-icon-edit-outline"
-          @click="uploaderToggle(true)"
+          @click="uploadShow = true"
         >{{ image? '更换':'新增' }}</el-button>
         <el-button v-if="image" type="text" icon="el-icon-close" @click="handleRemoveImage">移除</el-button>
       </div>
     </div>
     <div class="text item">
       <div v-if="image" class="thumbnails">
-        <el-image :src="image" alt @click="uploaderToggle(true)" />
+        <el-image :src="image" alt @click="uploadShow = true" />
       </div>
-      <uploader
+      <uploader-modal
         v-model="uploadShow"
         target="https://httpbin.org/post"
         :size-limit="500 * 1024 * 1024"
@@ -24,7 +24,7 @@
         :crop-width="400"
         :crop-height="300"
         :crop-fixed="[4,3]"
-        @close="uploaderToggle(false)"
+        @close="uploadShow = false"
       />
       <div class="tips">
         <p>推荐尺寸：{{ width }}像素 × {{ height }}像素</p>
@@ -35,12 +35,12 @@
   </el-card>
 </template>
 <script>
-import Uploader from '@/components/Uploader'
+import UploaderModal from '@/components/Uploader/Modal'
 
 export default {
   name: 'Thumbnail',
   components: {
-    Uploader
+    UploaderModal
   },
   props: {
     value: {
@@ -76,7 +76,7 @@ export default {
   },
   data() {
     return {
-      uploadShow: true,
+      uploadShow: false,
       image: this.value
     }
   },
@@ -86,9 +86,6 @@ export default {
     }
   },
   methods: {
-    uploaderToggle(status) {
-      this.uploadShow = status
-    },
     handleRemoveImage() {
       this.$confirm(
         '此操作将取消当前' + this.title + ', 是否继续?',

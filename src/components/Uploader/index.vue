@@ -1,60 +1,42 @@
 <template>
-  <el-dialog
-    v-el-drag-dialog
-    class="uploader"
-    :visible.sync="value"
-    :modal-append-to-body="false"
-    :close-on-click-modal="false"
-    :close-on-press-escape="false"
-    :append-to-body="true"
-    :title="dialogTitle"
-    :before-close="handleClose"
-    :width="width"
-    top="5vh"
-  >
-    <support-check :support="support">
-      <el-row :gutter="20">
-        <el-col :span="8">
-          <div ref="drop">
-            <drop-field
-              :queue-limit="queueLimit"
-              :size-limit="sizeLimit"
-              :type-limit="typeLimit"
-              :crop-show="cropOpen"
-              :crop-width="cropWidth"
-              :crop-height="cropHeight"
-            >
-              将文件拖到此处，或
-              <em>点击上传</em>
-            </drop-field>
-          </div>
-        </el-col>
-        <el-col :span="16">
-          <file-list
-            :frame-show="value"
-            :files="files"
+  <support-check :support="support">
+    <el-row :gutter="20">
+      <el-col :span="8">
+        <div ref="drop">
+          <drop-field
             :queue-limit="queueLimit"
-            :crop-open="cropOpen"
+            :size-limit="sizeLimit"
+            :type-limit="typeLimit"
+            :crop-show="cropOpen"
             :crop-width="cropWidth"
             :crop-height="cropHeight"
-            :crop-fixed="cropFixed"
-            :crop-output-quantity="cropOutputQuantity"
-            :crop-output-type="cropOutputType"
-            @add-file="handleAddFile"
-            @remove="handleRemove"
-          />
-        </el-col>
-      </el-row>
-    </support-check>
-    <div slot="footer" class="dialog-footer">
-      <el-button size="medium" @click="handleClose">关闭</el-button>
-    </div>
-  </el-dialog>
+          >
+            将文件拖到此处，或
+            <em>点击上传</em>
+          </drop-field>
+        </div>
+      </el-col>
+      <el-col :span="16">
+        <file-list
+          :dialog-visible="dialogVisible"
+          :files="files"
+          :queue-limit="queueLimit"
+          :crop-open="cropOpen"
+          :crop-width="cropWidth"
+          :crop-height="cropHeight"
+          :crop-fixed="cropFixed"
+          :crop-output-quantity="cropOutputQuantity"
+          :crop-output-type="cropOutputType"
+          @add-file="handleAddFile"
+          @remove="handleRemove"
+        />
+      </el-col>
+    </el-row>
+  </support-check>
 </template>
 <script>
 import MimeTypes from 'mime-types'
 import Uploader from 'simple-uploader.js'
-import elDragDialog from '@/directive/el-drag-dialog'
 import { getToken } from '@/utils/auth'
 import SupportCheck from './components/SupportCheck'
 import DropField from './components/DropField'
@@ -62,28 +44,23 @@ import FileList from './components/FileList'
 
 export default {
   name: 'Uploader',
-  version: '0.2.14',
+  version: '0.2.15',
   provide() {
     return {
       uploader: this
     }
   },
-  directives: { elDragDialog },
   components: {
     SupportCheck,
     DropField,
     FileList
   },
   props: {
-    value: {
-      // 隐藏 / 显示控件
+    dialogVisible: {
+      // 外部控件显示与否，用于更新文件状态
+      // 当控件关闭时（false），将会自动暂停
       type: Boolean,
       default: false
-    },
-    title: {
-      // dialog框显示的标题名称
-      type: String,
-      default: ''
     },
     field: {
       // 上传文件的域
@@ -153,17 +130,15 @@ export default {
       default: 'png'
     },
     lang: {
+      // 使用的语言包，默认将会通过系统语言自动获取
+      // 当输入不支持的语言包时，将会使用英文版
       type: String,
-      default: ''
+      default: 'auto'
     }
   },
   data() {
     return {
       loading: false,
-      // 上传框总宽度
-      width: '890px',
-      // 显示的标题
-      showTitle: '',
       // 是否支持
       support: true,
       // simple-uploader 配置
@@ -188,9 +163,6 @@ export default {
   computed: {
     getHeader() {
       return { 'X-Token': getToken() }
-    },
-    dialogTitle() {
-      return this.title ? this.title : '文件上传'
     },
     language() {
       let language
@@ -340,46 +312,7 @@ export default {
     },
     handleRemove(file) {
       this.uploader.removeFile(file)
-    },
-    handleClose() {
-      if (this.files.length > 0) {
-        let uploading = false
-        for (const file of this.files) {
-          if (file.isUploading()) {
-            uploading = true
-          }
-        }
-        if (uploading) {
-          this.$confirm('有文件正在上传中，是否关闭窗口?', '系统提示', {
-            confirmButtonText: '确定',
-            cancelButtonText: '取消',
-            type: 'warning'
-          }).then(() => {
-            for (const file of this.files) {
-              file.pause()
-            }
-            this.$emit('close')
-          })
-        } else {
-          this.$emit('close')
-        }
-      } else {
-        this.$emit('close')
-      }
     }
   }
 }
 </script>
-<style lang="scss">
-.uploader {
-  .el-dialog__body {
-    padding: 0 20px 20px;
-    .upload-pane {
-      .el-tabs__header {
-        margin: 0;
-      }
-    }
-  }
-}
-</style>
-
