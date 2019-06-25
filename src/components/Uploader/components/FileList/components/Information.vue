@@ -26,7 +26,7 @@
       />
       <p class="size">
         <el-tag size="mini">{{ row.name | formatType }}</el-tag>
-        <span>{{ row.uploadedSize | formatSize }}</span>
+        <span>{{ row.size * row.progress | formatSize }}</span>
         /
         <span>{{ row.size | formatSize }}</span>
       </p>

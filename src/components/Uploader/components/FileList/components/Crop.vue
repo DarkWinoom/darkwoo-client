@@ -236,16 +236,10 @@ export default {
 </script>
 
 <style lang="scss">
-.vue-cropper{
-  background: #fff!important;
-}
 .cropper {
   .el-dialog__body {
     padding: 10px 20px 0;
   }
-}
-.cropper-modal{
-  background: transparent!important;
 }
 </style>
 <style lang="scss" scoped>
