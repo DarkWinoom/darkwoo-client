@@ -58,6 +58,7 @@
 </template>
 
 <script>
+import SparkMD5 from 'spark-md5'
 import FileControl from './components/Control'
 import FileInformation from './components/Information'
 import FileStatus from './components/Status'
@@ -189,6 +190,21 @@ export default {
     })
   },
   methods: {
+    computeMD5(file) {
+      const fileReader = new FileReader()
+      fileReader.readAsArrayBuffer(file.file)
+      fileReader.onload = e => {
+        console.log(e.target)
+        file.uniqueIdentifier = SparkMD5.ArrayBuffer.hash(e.target.result)
+        this.fileComputedDown(file.id)
+        console.log('file "' + file.name + '" md5 donw!')
+      }
+      fileReader.onerror = function() {
+        file.uniqueIdentifier = file.size + '-' + file.name.substr(file.name.lastIndexOf('.') + 1).toUpperCase()
+        this.fileComputedDown(file.id)
+        console.log('file "' + file.name + '" md5 error!')
+      }
+    },
     fileInit(rowFile, index) {
       const files_id = this.list.map(item => item.id)
       if (!files_id.includes(rowFile.id)) {
@@ -249,6 +265,7 @@ export default {
           }
           fr.readAsDataURL(rowFile.file)
         }
+        this.computeMD5(rowFile)
         setTimeout(() => {
           this.cropMode = undefined
         }, 10)
@@ -261,10 +278,14 @@ export default {
     handleResume(id) {
       // 继续 & 开始下载
       const row = this._getRow(id)
-      const file = this._getFile(id)
-      row.canCrop = false // 开始后禁止裁剪
-      file.resume()
-      this._actionCheck(file)
+      if (!row.computed) {
+        this.$message.error('文件正在计算中，请稍候再试')
+      } else {
+        const file = this._getFile(id)
+        row.canCrop = false // 开始后禁止裁剪
+        file.resume()
+        this._actionCheck(file)
+      }
     },
     handlePause(id) {
       // 暂停
@@ -378,7 +399,11 @@ export default {
       // 全部开始
       if (this.isComplete) return true
       for (const row of this.list) {
-        this.handleResume(row.id)
+        if (!row.computed) {
+          this.$message.error('文件“' + row.name + '”正在计算中，请稍候重试')
+        } else {
+          this.handleResume(row.id)
+        }
       }
     },
     handlePauseAll() {

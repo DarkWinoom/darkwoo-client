@@ -38,6 +38,7 @@
         size="medium"
         type="success"
         icon="el-icon-caret-right"
+        :disabled="!row.computed"
         circle
         @click="handleResume(row.id)"
       />
