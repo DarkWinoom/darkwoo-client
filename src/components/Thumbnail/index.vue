@@ -17,9 +17,9 @@
       </div>
       <uploader-modal
         v-model="uploadModalCount"
-        target="https://httpbin.org/post"
+        target="http://localhost/laboratory/uploader.php"
         :size-limit="500 * 1024 * 1024"
-        :type-limit="['image', 'video']"
+        :type-limit="['image', 'video', 'rar']"
         :queue-limit="0"
         :crop-width="400"
         :crop-height="300"

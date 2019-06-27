@@ -78,7 +78,6 @@ export default {
   },
   methods: {
     handleStartAll() {
-      console.log(this.list)
       this.$emit('start')
     },
     handlePauseAll() {

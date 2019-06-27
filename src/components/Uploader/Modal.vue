@@ -14,6 +14,8 @@
   >
     <uploader
       :dialog-visible="showModal"
+      :empty-on-complete="true"
+      :spark-unique="sparkUnique"
       :field="field"
       :target="target"
       :headers="headers"
@@ -27,6 +29,7 @@
       :crop-output-quantity="cropOutputQuantity"
       :crop-output-type="cropOutputType"
       :lang="lang"
+      @complete="complete"
     />
     <div slot="footer" class="dialog-footer">
       <el-button size="medium" @click="handleClose">关闭</el-button>
@@ -46,6 +49,10 @@ export default {
     value: {
       type: [String, Number],
       default: undefined
+    },
+    sparkUnique: {
+      type: Boolean,
+      default: true
     },
     title: {
       // dialog框显示的标题名称
@@ -129,6 +136,10 @@ export default {
     })
   },
   methods: {
+    complete(message) {
+      console.log('complete', message)
+      this.showModal = false
+    },
     handleClose() {
       this.showModal = false
     }

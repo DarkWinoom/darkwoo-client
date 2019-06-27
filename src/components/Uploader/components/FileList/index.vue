@@ -80,6 +80,14 @@ export default {
       type: Boolean,
       default: false
     },
+    emptyOnComplete: {
+      type: Boolean,
+      default: false
+    },
+    sparkUnique: {
+      type: Boolean,
+      default: true
+    },
     files: {
       type: Array,
       default() {
@@ -128,6 +136,7 @@ export default {
       ],
       handlers: {},
       errors: [], // 出错的file.id，用以过滤错误提示
+      successMessage: [], // 上传成功后文件从服务端返回的内容
       index: 0, // 文件索引（按新增顺序）
       list: [],
       lines: 4, // 显示的文件行数
@@ -194,13 +203,11 @@ export default {
       const fileReader = new FileReader()
       fileReader.readAsArrayBuffer(file.file)
       fileReader.onload = e => {
-        console.log(e.target)
         file.uniqueIdentifier = SparkMD5.ArrayBuffer.hash(e.target.result)
         this.fileComputedDown(file.id)
         console.log('file "' + file.name + '" md5 donw!')
       }
       fileReader.onerror = function() {
-        file.uniqueIdentifier = file.size + '-' + file.name.substr(file.name.lastIndexOf('.') + 1).toUpperCase()
         this.fileComputedDown(file.id)
         console.log('file "' + file.name + '" md5 error!')
       }
@@ -229,7 +236,7 @@ export default {
           speed: 0,
           timeRemaining: 0,
           uploadedSize: 0, // 已上传的大小
-          computed: false, // 为true表示计算md5成功（运行上传）
+          computed: !this.sparkUnique, // 为true表示计算md5成功（运行上传）
           paused: false, // 是否已暂停
           error: false, // 是否出错
           croped: croped, // 是否已经被裁剪
@@ -265,7 +272,9 @@ export default {
           }
           fr.readAsDataURL(rowFile.file)
         }
-        this.computeMD5(rowFile)
+        if (this.sparkUnique) {
+          this.computeMD5(rowFile)
+        }
         setTimeout(() => {
           this.cropMode = undefined
         }, 10)
@@ -299,6 +308,9 @@ export default {
       const file = this._getFile(id)
       file.retry()
       this._actionCheck(file)
+
+      const index = this.errors.indexOf(id)
+      this.errors.splice(index, 1)
     },
     handleRemove(id, completeCheck = true) {
       const file = this._getFile(id)
@@ -341,19 +353,44 @@ export default {
       row.error = false
       row.isComplete = true
       row.isUploading = false
+      message = JSON.parse(message).data
+      if (!this.successMessage.find(function(value) { return value.id === message.id })) {
+        this.successMessage.push(message)
+      }
     },
     _fileError(rootFile, file, message, chunk) {
       // 上传失败
-      console.log(rootFile, message)
+      message = JSON.parse(message).data
+      this._fileProgress(file)
+      const row = this._getRow(file.id)
+      row.error = true
+      row.isComplete = false
+      row.isUploading = false
+      if (!this.errors.includes(file.id)) {
+        setTimeout(() => {
+          this.$notify({
+            title: '文件上传失败',
+            message: typeof message === 'string' ? message : '未知错误',
+            type: 'warning',
+            duration: 6000
+          })
+        }, 10)
+        this.errors.push(file.id)
+      }
     },
     _complete() {
       // 列表中文件全部上传完成后回调
-      console.log('complete try')
-      if (this.completeLock) {
+      if (this.completeLock || this.errors.length > 0) {
         return false
       }
       this.completeLock = true
-      console.log('completed!')
+      this.$emit('complete', this.successMessage)
+      if (this.emptyOnComplete === true) {
+        this.loading = true
+        setTimeout(() => {
+          this.handleClear()
+        }, 1000)
+      }
     },
     handleCrop(id) {
       // 点击裁剪按钮
@@ -422,6 +459,7 @@ export default {
       this.list = []
       this.errors = []
       this.cropCache = []
+      this.successMessage = []
       this.loading = false
     }
   }

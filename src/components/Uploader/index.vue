@@ -20,6 +20,8 @@
         <file-list
           ref="fileList"
           :dialog-visible="dialogVisible"
+          :empty-on-complete="emptyOnComplete"
+          :spark-unique="sparkUnique"
           :files="files"
           :queue-limit="queueLimit"
           :crop-open="cropOpen"
@@ -30,6 +32,7 @@
           :crop-output-type="cropOutputType"
           @add-file="handleAddFile"
           @remove="handleRemove"
+          @complete="complete"
         />
       </el-col>
     </el-row>
@@ -45,7 +48,7 @@ import FileList from './components/FileList'
 
 export default {
   name: 'Uploader',
-  version: '0.2.17',
+  version: '0.3.18',
   provide() {
     return {
       uploader: this
@@ -63,15 +66,27 @@ export default {
       type: Boolean,
       default: false
     },
+    emptyOnComplete: {
+      // 为true时，会在上传成功时清空列表
+      type: Boolean,
+      default: false
+    },
+    sparkUnique: {
+      // 使用spark-md5计算值来代替uniqueIdentifier
+      // 在添加文件时将会自动计算，对于大体积文件需要花费一定时间（同时在计算时可能会造成浏览器卡顿）
+      // 通过计算后的identifier，即使修改了文件名，也可以触发快传和断点续传
+      type: Boolean,
+      default: true
+    },
     field: {
       // 上传文件的域
       type: String,
       default: 'upload'
     },
     target: {
-      // 上传目标url
+      // 上传目标url（默认地址仅作为测试用）
       type: String,
-      default: ''
+      default: 'https://httpbin.org/post'
     },
     headers: {
       // 额外的请求头
@@ -146,12 +161,12 @@ export default {
       simpleUploaderOptions: {
         target: this.target,
         testChunks: true,
-        checkChunkUploadedByResponse: function(chunk, message) {
+        checkChunkUploadedByResponse: (chunk, message) => {
           const objMessage = JSON.parse(message)
-          if (objMessage.skipUpload) {
+          if (objMessage.data.id) {
             return true
           }
-          return (objMessage.uploaded || []).indexOf(chunk.offset + 1) >= 0
+          return (objMessage.data.skipChunks || []).indexOf(chunk.offset + 1) >= 0
         },
         fileParameterName: this.field,
         successStatuses: [200, 201, 202],
@@ -160,12 +175,12 @@ export default {
         initialPaused: true,
         headers: (file, chunk) => {
           return this.headers ? this.headers : {}
-        },
-        query: function(file, chunk) {
+        }
+        /* query: function(file, chunk) {
           return {
             id: file.id
           }
-        }
+        } */
       },
       files: []
     }
@@ -254,6 +269,9 @@ export default {
           duration: 6000
         })
       }, 100)
+    },
+    complete(message) {
+      this.$emit('complete', message)
     },
     fileAdded(file, event) {
       // 格式与大小检测
