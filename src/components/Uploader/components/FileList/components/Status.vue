@@ -21,7 +21,7 @@ export default {
     formatStatus(row) {
       // 剩余时间文本（状态）
       if (!row.computed) {
-        return '正在计算'
+        return '准备中'
       } else if (row.isComplete) {
         return '上传成功'
       } else if (row.error) {
@@ -32,8 +32,10 @@ export default {
         const time = row.timeRemaining
         if (Number.isFinite(time) && time > 0) {
           return secondsToStr(time)
-        } else if (row.progress !== 1) {
+        } else if (!row.progress) {
           return '正在连接'
+        } else if (row.progress > 0.9) {
+          return '正在处理'
         } else {
           return '-'
         }

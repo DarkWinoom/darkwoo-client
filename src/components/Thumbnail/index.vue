@@ -24,6 +24,7 @@
         :crop-width="400"
         :crop-height="300"
         :crop-fixed="[4,3]"
+        @complete="complete"
       />
       <div class="tips">
         <p>推荐尺寸：{{ width }}像素 × {{ height }}像素</p>
@@ -87,6 +88,10 @@ export default {
   methods: {
     showModal() {
       this.uploadModalCount++
+    },
+    complete(message) {
+      this.$message.success('上传成功')
+      console.log(message)
     },
     handleRemoveImage() {
       this.$confirm(

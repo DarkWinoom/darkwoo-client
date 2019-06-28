@@ -39,7 +39,6 @@
   </support-check>
 </template>
 <script>
-import MimeTypes from 'mime-types'
 import Uploader from 'simple-uploader.js'
 import { getToken } from '@/utils/auth'
 import SupportCheck from './components/SupportCheck'
@@ -48,7 +47,7 @@ import FileList from './components/FileList'
 
 export default {
   name: 'Uploader',
-  version: '0.3.18',
+  version: '0.3.19',
   provide() {
     return {
       uploader: this
@@ -60,24 +59,6 @@ export default {
     FileList
   },
   props: {
-    dialogVisible: {
-      // 外部控件显示与否，用于更新文件状态
-      // 当控件关闭时（false），将会自动暂停
-      type: Boolean,
-      default: false
-    },
-    emptyOnComplete: {
-      // 为true时，会在上传成功时清空列表
-      type: Boolean,
-      default: false
-    },
-    sparkUnique: {
-      // 使用spark-md5计算值来代替uniqueIdentifier
-      // 在添加文件时将会自动计算，对于大体积文件需要花费一定时间（同时在计算时可能会造成浏览器卡顿）
-      // 通过计算后的identifier，即使修改了文件名，也可以触发快传和断点续传
-      type: Boolean,
-      default: true
-    },
     field: {
       // 上传文件的域
       type: String,
@@ -93,6 +74,16 @@ export default {
       type: Object,
       default() {
         return {}
+      }
+    },
+    query: {
+      // 额外的请求参数
+      // 接收两个参数：file、chunk
+      type: Function,
+      default() {
+        return function(file, chunk) {
+          return {}
+        }
       }
     },
     queueLimit: {
@@ -145,11 +136,23 @@ export default {
       type: String,
       default: 'png'
     },
-    lang: {
-      // 使用的语言包，默认将会通过系统语言自动获取
-      // 当输入不支持的语言包时，将会使用英文版
-      type: String,
-      default: 'auto'
+    emptyOnComplete: {
+      // 为true时，会在上传成功时清空列表
+      type: Boolean,
+      default: false
+    },
+    sparkUnique: {
+      // 使用spark-md5计算值来代替uniqueIdentifier
+      // 在添加文件时将会自动计算，对于大体积文件需要花费一定时间（同时在计算时可能会造成浏览器卡顿）
+      // 通过计算后的identifier，即使修改了文件名，也可以触发快传和断点续传
+      type: Boolean,
+      default: true
+    },
+    dialogVisible: {
+      // 外部控件显示与否，用于更新文件状态
+      // 使用模态框显示时需要将该参数绑定其visible属性，不使用时忽略
+      type: Boolean,
+      default: false
     }
   },
   data() {
@@ -174,33 +177,14 @@ export default {
         singleFile: this.queueLimit === 1,
         initialPaused: true,
         headers: (file, chunk) => {
-          return this.headers ? this.headers : {}
-        }
-        /* query: function(file, chunk) {
           return {
-            id: file.id
+            ...this.headers,
+            'X-Token': getToken()
           }
-        } */
+        },
+        query: this.query()
       },
       files: []
-    }
-  },
-  computed: {
-    getHeader() {
-      return { 'X-Token': getToken() }
-    },
-    language() {
-      let language
-      if (this.lang) {
-        language = this.lang
-      } else {
-        if (navigator.appName === 'Netscape') {
-          language = navigator.language
-        } else {
-          language = navigator.browserLanguage
-        }
-      }
-      return language.toLowerCase()
     }
   },
   created() {
@@ -210,7 +194,7 @@ export default {
       this.uploader.on('fileAdded', this.fileAdded)
       this.uploader.on('fileRemoved', this.fileRemoved)
       this.uploader.on('filesSubmitted', this.filesSubmitted)
-      this.uploader.on('fileError', this.fileError)
+      // this.uploader.on('fileError', this.fileError)
     }
   },
   mounted() {
@@ -218,7 +202,8 @@ export default {
       if (this.support) {
         var accept = []
         if (this.typeLimit) {
-          for (const type of this.typeLimit) {
+          for (let type of this.typeLimit) {
+            type = type.toLowerCase()
             switch (type) {
               case 'image':
                 accept.push('image/*')
@@ -230,8 +215,8 @@ export default {
                 accept.push('audio/*')
                 break
               default:
-                if (MimeTypes.lookup(type)) {
-                  accept.push(MimeTypes.lookup(type))
+                if (type) {
+                  accept.push('.' + type)
                 }
             }
           }
@@ -250,7 +235,7 @@ export default {
       this.uploader.off('fileAdded', this.fileAdded)
       this.uploader.off('fileRemoved', this.fileRemoved)
       this.uploader.off('filesSubmitted', this.filesSubmitted)
-      this.uploader.off('fileError', this.fileError)
+      // this.uploader.off('fileError', this.fileError)
       // this.uploader.off('complete', this.complete)
       if (this.$refs.drop) {
         this.uploader.unAssignDrop(this.$refs.drop)
@@ -332,9 +317,9 @@ export default {
         this.files = [...this.files, ...files]
       }
     },
-    fileError(rootFile, file, message, chunk) {
+    /* fileError(rootFile, file, message, chunk) {
       console.log(file, message)
-    },
+    }, */
     handleAddFile(file) {
       this.uploader.addFile(file)
     },

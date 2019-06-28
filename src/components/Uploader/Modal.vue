@@ -19,6 +19,7 @@
       :field="field"
       :target="target"
       :headers="headers"
+      :query="query"
       :queue-limit="queueLimit"
       :size-limit="sizeLimit"
       :type-limit="typeLimit"
@@ -28,7 +29,6 @@
       :crop-fixed="cropFixed"
       :crop-output-quantity="cropOutputQuantity"
       :crop-output-type="cropOutputType"
-      :lang="lang"
       @complete="complete"
     />
     <div slot="footer" class="dialog-footer">
@@ -50,10 +50,6 @@ export default {
       type: [String, Number],
       default: undefined
     },
-    sparkUnique: {
-      type: Boolean,
-      default: true
-    },
     title: {
       // dialog框显示的标题名称
       type: String,
@@ -71,6 +67,14 @@ export default {
       type: Object,
       default() {
         return {}
+      }
+    },
+    query: {
+      type: Function,
+      default() {
+        return function(file, chunk) {
+          return {}
+        }
       }
     },
     queueLimit: {
@@ -111,9 +115,9 @@ export default {
       type: String,
       default: 'png'
     },
-    lang: {
-      type: String,
-      default: ''
+    sparkUnique: {
+      type: Boolean,
+      default: true
     }
   },
   data() {
@@ -137,7 +141,7 @@ export default {
   },
   methods: {
     complete(message) {
-      console.log('complete', message)
+      this.$emit('complete', message)
       this.showModal = false
     },
     handleClose() {
