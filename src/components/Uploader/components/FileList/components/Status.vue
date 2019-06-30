@@ -26,19 +26,21 @@ export default {
         return '上传成功'
       } else if (row.error) {
         return '上传失败'
-      } else if (row.paused) {
-        return '已暂停'
       } else if (row.isUploading) {
         const time = row.timeRemaining
-        if (Number.isFinite(time) && time > 0) {
+        if (time === 0) {
+          return '00:00:01'
+        } else if (Number.isFinite(time) && time > 0) {
           return secondsToStr(time)
         } else if (!row.progress) {
           return '正在连接'
-        } else if (row.progress > 0.9) {
-          return '正在处理'
         } else {
           return '-'
         }
+      } else if (row.paused) {
+        return '已暂停'
+      } else if (row.progress === 1) {
+        return '正在处理'
       } else {
         return '等待上传'
       }

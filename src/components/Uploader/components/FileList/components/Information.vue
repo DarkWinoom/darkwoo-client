@@ -22,7 +22,7 @@
         :text-inside="true"
         :stroke-width="15"
         :percentage="row | formatProgress"
-        color="#67C23A"
+        :color="progressColor(row)"
       />
       <p class="size">
         <el-tag size="mini">{{ row.name | formatType }}</el-tag>
@@ -109,6 +109,15 @@ export default {
     showViewer() {
       if (this.viewer) {
         this.viewer.show()
+      }
+    },
+    progressColor(row) {
+      if (row.isComplete) {
+        return '#67C23A'
+      } else if (row.error) {
+        return '#F56C6C'
+      } else {
+        return '#409EFF'
       }
     }
   }

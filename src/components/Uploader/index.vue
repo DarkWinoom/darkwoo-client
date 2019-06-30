@@ -19,9 +19,7 @@
       <el-col :span="16">
         <file-list
           ref="fileList"
-          :dialog-visible="dialogVisible"
-          :empty-on-complete="emptyOnComplete"
-          :spark-unique="sparkUnique"
+          :target="target"
           :files="files"
           :queue-limit="queueLimit"
           :crop-open="cropOpen"
@@ -30,6 +28,9 @@
           :crop-fixed="cropFixed"
           :crop-output-quantity="cropOutputQuantity"
           :crop-output-type="cropOutputType"
+          :empty-on-complete="emptyOnComplete"
+          :dialog-visible="dialogVisible"
+          :spark-unique="sparkUnique"
           @add-file="handleAddFile"
           @remove="handleRemove"
           @complete="complete"
@@ -47,7 +48,7 @@ import FileList from './components/FileList'
 
 export default {
   name: 'Uploader',
-  version: '0.3.19',
+  version: '0.3.20',
   provide() {
     return {
       uploader: this
@@ -144,7 +145,7 @@ export default {
     sparkUnique: {
       // 使用spark-md5计算值来代替uniqueIdentifier
       // 在添加文件时将会自动计算，对于大体积文件需要花费一定时间（同时在计算时可能会造成浏览器卡顿）
-      // 通过计算后的identifier，即使修改了文件名，也可以触发快传和断点续传
+      // 通过计算后，将会更加准确的触发快传和断点续传
       type: Boolean,
       default: true
     },
@@ -171,6 +172,7 @@ export default {
           }
           return (objMessage.data.skipChunks || []).indexOf(chunk.offset + 1) >= 0
         },
+        // simultaneousUploads: 1,
         fileParameterName: this.field,
         successStatuses: [200, 201, 202],
         permanentErrors: [206, 404, 415, 500, 501],
@@ -194,7 +196,6 @@ export default {
       this.uploader.on('fileAdded', this.fileAdded)
       this.uploader.on('fileRemoved', this.fileRemoved)
       this.uploader.on('filesSubmitted', this.filesSubmitted)
-      // this.uploader.on('fileError', this.fileError)
     }
   },
   mounted() {
@@ -235,8 +236,6 @@ export default {
       this.uploader.off('fileAdded', this.fileAdded)
       this.uploader.off('fileRemoved', this.fileRemoved)
       this.uploader.off('filesSubmitted', this.filesSubmitted)
-      // this.uploader.off('fileError', this.fileError)
-      // this.uploader.off('complete', this.complete)
       if (this.$refs.drop) {
         this.uploader.unAssignDrop(this.$refs.drop)
       }
@@ -317,9 +316,6 @@ export default {
         this.files = [...this.files, ...files]
       }
     },
-    /* fileError(rootFile, file, message, chunk) {
-      console.log(file, message)
-    }, */
     handleAddFile(file) {
       this.uploader.addFile(file)
     },

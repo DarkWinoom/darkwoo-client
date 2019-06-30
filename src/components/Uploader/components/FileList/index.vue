@@ -59,6 +59,7 @@
 
 <script>
 import SparkMD5 from 'spark-md5'
+import axios from 'axios'
 import FileControl from './components/Control'
 import FileInformation from './components/Information'
 import FileStatus from './components/Status'
@@ -75,18 +76,9 @@ export default {
     FileCrop
   },
   props: {
-    // 监视上传框是否显示（用来更新状态）
-    dialogVisible: {
-      type: Boolean,
-      default: false
-    },
-    emptyOnComplete: {
-      type: Boolean,
-      default: false
-    },
-    sparkUnique: {
-      type: Boolean,
-      default: true
+    target: {
+      type: String,
+      default: ''
     },
     files: {
       type: Array,
@@ -121,6 +113,18 @@ export default {
     cropOutputType: {
       type: String,
       default: 'png'
+    },
+    emptyOnComplete: {
+      type: Boolean,
+      default: false
+    },
+    sparkUnique: {
+      type: Boolean,
+      default: true
+    },
+    dialogVisible: {
+      type: Boolean,
+      default: false
     }
   },
   data() {
@@ -131,12 +135,12 @@ export default {
       events: [
         'fileProgress',
         'fileSuccess' /* , 'fileComplete' */,
-        'fileError',
-        'complete'
+        'fileError'
       ],
       handlers: {},
       errors: [], // 出错的file.id，用以过滤错误提示
       successMessage: [], // 上传成功后文件从服务端返回的内容
+      successList: [], // 正在合并或者已经合并成功的id列表
       index: 0, // 文件索引（按新增顺序）
       list: [],
       lines: 4, // 显示的文件行数
@@ -318,8 +322,8 @@ export default {
       this.list.splice(index, 1)
       this.$emit('remove', file)
       this.key++
-      if (completeCheck && this.isComplete) {
-        this._complete()
+      if (completeCheck) {
+        this.completeCheck()()
       }
     },
     _getFile(value, field = 'id') {
@@ -348,19 +352,46 @@ export default {
       this._actionCheck(file)
     },
     _fileSuccess(file, files, message, chunk) {
-      this._fileProgress(file)
-      const row = this._getRow(file.id)
-      row.error = false
-      row.isComplete = true
-      row.isUploading = false
-      message = JSON.parse(message).data
-      if (!this.successMessage.find(function(value) { return value.id === message.id })) {
+      const data = {
+        totalChunks: file.chunks.length,
+        filename: file.name,
+        identifier: file.uniqueIdentifier
+      }
+      const check = (file, message) => {
+        this._fileProgress(file)
+        const row = this._getRow(file.id)
+        row.error = false
+        row.isComplete = true
+        row.isUploading = false
         this.successMessage.push(message)
+        this.completeCheck()
+      }
+      message = JSON.parse(message).data
+      if (!this.successList.find(function(value) { return value === file.id })) {
+        this.successList.push(file.id)
+        if (message.id || data.totalChunks === 1) {
+          check(file, message)
+        } else {
+          axios({
+            url: this.target,
+            method: 'post',
+            data: {
+              ...data,
+              merge: 1
+            }
+          }).then(response => {
+            check(file, response.data.data)
+          })
+        }
       }
     },
     _fileError(rootFile, file, message, chunk) {
       // 上传失败
-      message = JSON.parse(message).data
+      if (message) {
+        message = JSON.parse(message).data
+      } else {
+        message = '服务器连接失败，请稍候重试'
+      }
       this._fileProgress(file)
       const row = this._getRow(file.id)
       row.error = true
@@ -378,9 +409,9 @@ export default {
         this.errors.push(file.id)
       }
     },
-    _complete() {
+    completeCheck() {
       // 列表中文件全部上传完成后回调
-      if (this.completeLock || this.errors.length > 0) {
+      if (this.completeLock || this.errors.length > 0 || !this.isComplete) {
         return false
       }
       this.completeLock = true
@@ -460,6 +491,7 @@ export default {
       this.errors = []
       this.cropCache = []
       this.successMessage = []
+      this.successList = []
       this.loading = false
     }
   }
