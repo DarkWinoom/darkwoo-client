@@ -37,7 +37,7 @@ class uploader
         return preg_replace("/[^0-9A-Za-z_-]/U", '', $identifier);
     }
 
-    private function getChunkFilename($chunkNumber, $identifier)
+    private function getChunkFile($chunkNumber, $identifier)
     {
         // Clean up the identifier
         $identifier = $this->cleanIdentifier($identifier);
@@ -98,7 +98,7 @@ class uploader
         $uploaded = array();
         for ($currentTestChunk = 1; $currentTestChunk <= $totalChunks; $currentTestChunk++) {
             // Recursion
-            if (file_exists($this->getChunkFilename($currentTestChunk, $identifier))) {
+            if (file_exists($this->getChunkFile($currentTestChunk, $identifier))) {
                 $uploaded[] = $currentTestChunk;
             }
         }
@@ -108,31 +108,29 @@ class uploader
     public function upload()
     {
         // 接收文件
-        $fields = $_POST;
-        $files = $_FILES;
+        $chunkNumber = post('chunkNumber');
+        $totalChunks = post('totalChunks');
+        $chunkSize = post('chunkSize');
+        $totalSize = post('totalSize');
+        $identifier = $this->cleanIdentifier(post('identifier'));
+        $filename = post('filename');
 
-        $chunkNumber = $fields['chunkNumber'];
-        $totalChunks = $fields['totalChunks'];
-        $chunkSize = $fields['chunkSize'];
-        $totalSize = $fields['totalSize'];
-        $identifier = $this->cleanIdentifier($fields['identifier']);
-        $filename = $fields['filename'];
-
-        if (!$files[$this->fileParameterName] || !$files[$this->fileParameterName]['size']) {
+        if (!$_FILES[$this->fileParameterName] || !$_FILES[$this->fileParameterName]['size']) {
             return array(
                 'code' => 10000,
                 'data' => 'invalid_uploader_request: file not found'
             );
         }
 
-        $validation = $this->validateRequest($chunkNumber, $chunkSize, $totalSize, $identifier, $filename, $files[$this->fileParameterName]['size']);
+        $validation = $this->validateRequest($chunkNumber, $chunkSize, $totalSize, $identifier, $filename, $_FILES[$this->fileParameterName]['size']);
         if ($validation == 'valid') {
-            $chunkFilename = $this->getChunkFilename($chunkNumber, $identifier);
+            $chunkFile = $this->getChunkFile($chunkNumber, $identifier);
 
             // Save the chunk (TODO: OVERWRITE)
-            if (rename($files[$this->fileParameterName]['tmp_name'], $chunkFilename)) {
+            if (rename($_FILES[$this->fileParameterName]['tmp_name'], $chunkFile)) {
                 // Do we have all the chunks?
-                if (count($this->uploaded_chunks($identifier,$totalChunks)) == $totalChunks) {
+                if ($totalChunks == 1) {
+                    // if there only one chunk, directly merge
                     return $this->merge();
                 } else {
                     return array(
@@ -154,9 +152,9 @@ class uploader
     public function merge()
     {
         // 上传合并
-        $totalChunks = $_POST['totalChunks'];
-        $fileName = $_POST['filename'];
-        $identifier = $_POST['identifier'];
+        $totalChunks = post('totalChunks');
+        $fileName = post('filename');
+        $identifier = post('identifier');
 
         $path_info = pathinfo($fileName);
         $extension = '.' . strtolower($path_info['extension']);
@@ -167,9 +165,9 @@ class uploader
                 'data' => 'open_file_fail: the chunk file could not be open'
             );
         }
-        //if (flock($out, LOCK_EX)) {
+        if (flock($out, LOCK_EX)) {
             for ($index = 1; $index <= $totalChunks; $index++) {
-                $file_part = $this->getChunkFilename($index, $identifier);
+                $file_part = $this->getChunkFile($index, $identifier);
                 if (file_exists($file_part)) {
                     $in = fopen($file_part, 'rb');
                     $content = fread($in, filesize($file_part));
@@ -179,7 +177,6 @@ class uploader
                         fwrite($out, $buff);
                     }*/
                     fclose($in);
-                    //unlink($file_part);
                 } else {
                     return array(
                         'code' => 10000,
@@ -187,9 +184,15 @@ class uploader
                     );
                 }
             }
-            //flock($out, LOCK_UN);
-        //}
+            flock($out, LOCK_UN);
+        }
         @fclose($out);
+        for ($index = 1; $index <= $totalChunks; $index++) {
+            $file_part = $this->getChunkFile($index, $identifier);
+            if (file_exists($file_part)) {
+                unlink($file_part);
+            }
+        }
         return array(
             'code' => 20000,
             'data' => $this->get_file($identifier,$fileName)
@@ -200,16 +203,17 @@ class uploader
         // 获取文件信息（数据库中）
         // 通过$identifier与数据库中存储的文件进行比对并返回（这里为演示）
 
-        // 有一种情况需要注意，就是用户修改过文件后缀再上传。这种情况下文件的md5是一致的，但是后缀不一样，应该被视为两个文件（即使其中一个无法正常使用）
+        // 有一种情况需要注意，就是相同文件但后缀不同。这种情况下文件计算的spark-md5是一致的，但是后缀不一样，应该被视为两个文件（即使其中一个无法正常使用）
         // 可以考虑以下几种解决方法：
-        // 1.不使用md5作为文件的identifier，默认的identifier会将文件名（包括后缀）作为seed
+        // 1.不使用spark-md5作为文件的identifier，默认的identifier会将文件名（包括后缀）作为seed
         // 2.在数据库中identifier不唯一，获取文件时同时使用identifier和文件后缀（推荐）
         // 3.存储的文件不使用后缀，在获取时通过统一的地址生成一个带后缀的文件
         $path_info = pathinfo($name);
         $extension = '.' . strtolower($path_info['extension']);
         $hash_name = $identifier . $extension;
         return array(
-            'id' => rand(1, 99999), // 来自数据库，文件的id
+            'id' => rand(1, 99999), // 来自数据库，文件的id（用来确定文件是否上传成功）
+            'identifier' => $identifier,
             'name' => $name, // 原始文件名
             'link' => $this->uploadUrl . $hash_name // 文件的http访问地址
         );
@@ -221,7 +225,11 @@ $uploader = new uploader('upload','upload');
 
 if($_SERVER['REQUEST_METHOD'] == 'POST'){
     // 上传
-    $return = $uploader->upload();
+    if(post('merge')){
+        $return = $uploader->merge();
+    } else {
+        $return = $uploader->upload();
+    }
     if($return['code'] !== 20000){
         // 错误
         http_code(500);
@@ -240,15 +248,16 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
         http_code(201);
         $data = array(
             'id' => 0,
-            'name' => '',
+            'identifier' => $_GET['identifier'],
+            'name' => $_GET['filename'],
             'link' => '',
             'skipChunks' => $uploader->uploaded_chunks($_GET['identifier'], $_GET['totalChunks']) // 已上传的块（断点续传）
         );
-        if (count($data['skipChunks']) <= 3) {
+        /*if (count($data['skipChunks']) <= 3) {
             $data['skipChunks'] = [];
         } else {
             array_splice($data['skipChunks'], -3);
-        }
+        }*/
         // 为了保证因为意外终止导致数据不完整，因此在断点续传时选择将最后三个chunks舍弃（通知前端重新上传）
         // 这里的选择是源于simple-uploader配置中的simultaneousUploads，可以根据实际需要进行修改
     }
@@ -256,6 +265,17 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
         'code' => 20000,
         'data' => $data,
     ));
+}
+
+function post($var,$default = '')
+{
+    // 获取 post 参数
+    if (!empty($_POST[$var])) {
+        return $_POST[$var];
+    } else {
+        $steam = json_decode(file_get_contents("php://input"), TRUE);
+        return !empty($steam[$var]) ? $steam[$var] : $default;
+    }
 }
 
 function http_code($num)
