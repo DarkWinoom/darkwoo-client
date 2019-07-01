@@ -18,9 +18,10 @@
       <uploader-modal
         v-model="uploadModalCount"
         target="http://localhost/laboratory/uploader.php"
+        :fast-transfer="false"
         :size-limit="500 * 1024 * 1024"
         :type-limit="['image', 'video', 'rar']"
-        :queue-limit="0"
+        :queue-limit="20"
         :crop-width="400"
         :crop-height="300"
         :crop-fixed="[4,3]"

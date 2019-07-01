@@ -151,8 +151,8 @@ export default {
       cropQueue: undefined, // 裁剪或还原成功后调用，queue标记
       showCrop: false, // 是否显示裁剪框
       cropId: undefined, // 传入裁剪文件的id
-      cropFile: undefined, // 传入裁剪的文件（type File）
-      cropCache: [] // 已裁剪文件缓存，queue => file
+      cropFile: undefined, // 传入裁剪的文件资源
+      cropCache: [] // 已裁剪文件缓存，queue => file（用于还原）
     }
   },
   computed: {
@@ -264,6 +264,7 @@ export default {
         if (rowFile.uploader.opts.singleFile === true) {
           // 设定了只上传单一文件
           this.list = [file]
+          this.key++
         } else {
           this.list.push(file)
         }
@@ -292,7 +293,7 @@ export default {
       // 继续 & 开始下载
       const row = this._getRow(id)
       if (!row.computed) {
-        this.$message.error('文件正在计算中，请稍候再试')
+        this.$message.warning('文件正在准备中，请稍候再试')
       } else {
         const file = this._getFile(id)
         row.canCrop = false // 开始后禁止裁剪
@@ -323,7 +324,7 @@ export default {
       this.$emit('remove', file)
       this.key++
       if (completeCheck) {
-        this.completeCheck()()
+        this.completeCheck()
       }
     },
     _getFile(value, field = 'id') {
@@ -468,7 +469,7 @@ export default {
       if (this.isComplete) return true
       for (const row of this.list) {
         if (!row.computed) {
-          this.$message.error('文件“' + row.name + '”正在计算中，请稍候重试')
+          this.$message.warning('文件“' + row.name + '”正在准备中，请稍候重试')
         } else {
           this.handleResume(row.id)
         }

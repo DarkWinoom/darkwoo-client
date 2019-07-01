@@ -3,18 +3,21 @@
     <el-row :gutter="20">
       <el-col :span="8">
         <div ref="drop">
-          <drop-field
-            :queue-limit="queueLimit"
-            :size-limit="sizeLimit"
-            :type-limit="typeLimit"
-            :crop-show="cropOpen"
-            :crop-width="cropWidth"
-            :crop-height="cropHeight"
-          >
+          <drop-field>
             将文件拖到此处，或
             <em>点击上传</em>
           </drop-field>
         </div>
+        <upload-tips
+          :show-switch="fastTransfer !== false"
+          :queue-limit="queueLimit"
+          :size-limit="sizeLimit"
+          :type-limit="typeLimit"
+          :crop-show="cropOpen"
+          :crop-width="cropWidth"
+          :crop-height="cropHeight"
+          @change="handleChangeForceUpload"
+        />
       </el-col>
       <el-col :span="16">
         <file-list
@@ -44,11 +47,12 @@ import Uploader from 'simple-uploader.js'
 import { getToken } from '@/utils/auth'
 import SupportCheck from './components/SupportCheck'
 import DropField from './components/DropField'
+import UploadTips from './components/UploadTips'
 import FileList from './components/FileList'
 
 export default {
   name: 'Uploader',
-  version: '0.3.20',
+  version: '0.3.21',
   provide() {
     return {
       uploader: this
@@ -57,6 +61,7 @@ export default {
   components: {
     SupportCheck,
     DropField,
+    UploadTips,
     FileList
   },
   props: {
@@ -86,6 +91,12 @@ export default {
           return {}
         }
       }
+    },
+    fastTransfer: {
+      // 是否开启快传和断点续传模式，如果后端不支持此功能可以选择关闭
+      // 默认允许用户自行选择
+      type: [String, Boolean],
+      default: 'auto'
     },
     queueLimit: {
       // 队列中允许的最大文件数量（默认不限）
@@ -157,6 +168,13 @@ export default {
     }
   },
   data() {
+    const testChunks = () => {
+      if (typeof this.fastTransfer === 'boolean') {
+        return this.fastTransfer
+      } else {
+        return true
+      }
+    }
     return {
       loading: false,
       // 是否支持
@@ -164,7 +182,7 @@ export default {
       // simple-uploader 配置
       simpleUploaderOptions: {
         target: this.target,
-        testChunks: true,
+        testChunks: testChunks(),
         checkChunkUploadedByResponse: (chunk, message) => {
           const objMessage = JSON.parse(message)
           if (objMessage.data.id) {
@@ -254,12 +272,15 @@ export default {
         })
       }, 100)
     },
+    handleChangeForceUpload(value) {
+      this.uploader.opts.testChunks = !value
+    },
     complete(message) {
       this.$emit('complete', message)
     },
     fileAdded(file, event) {
       // 格式与大小检测
-      if (this.queueLimit > 0 && this.files.length >= this.queueLimit) {
+      if (this.queueLimit > 1 && this.files.length >= this.queueLimit) {
         this.ignoreNotify(file, '文件数量超过限制')
         return false
       } else if (file.name.lastIndexOf('.') === -1) {
