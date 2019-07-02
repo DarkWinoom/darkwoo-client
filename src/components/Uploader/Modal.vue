@@ -13,13 +13,11 @@
     top="5vh"
   >
     <uploader
-      :dialog-visible="showModal"
-      :empty-on-complete="true"
-      :spark-unique="sparkUnique"
       :field="field"
       :target="target"
       :headers="headers"
       :query="query"
+      :fast-transfer="fastTransfer"
       :queue-limit="queueLimit"
       :size-limit="sizeLimit"
       :type-limit="typeLimit"
@@ -29,6 +27,9 @@
       :crop-fixed="cropFixed"
       :crop-output-quantity="cropOutputQuantity"
       :crop-output-type="cropOutputType"
+      :empty-on-complete="true"
+      :spark-unique="sparkUnique"
+      :dialog-visible="showModal"
       @complete="complete"
     />
     <div slot="footer" class="dialog-footer">
@@ -76,6 +77,10 @@ export default {
           return {}
         }
       }
+    },
+    fastTransfer: {
+      type: [String, Boolean],
+      default: 'auto'
     },
     queueLimit: {
       type: Number,
