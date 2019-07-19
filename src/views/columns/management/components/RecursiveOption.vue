@@ -49,6 +49,14 @@ export default {
       scopes: []
     }
   },
+  watch: {
+    list: {
+      handler: function() {
+        this.scope()
+      },
+      deep: true
+    }
+  },
   created() {
     this.scope()
   },
