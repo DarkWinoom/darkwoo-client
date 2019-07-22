@@ -2,11 +2,17 @@
   <span>
     <span v-for="(item,index) in list" :key="index">
       <el-option
+        v-if="item.id !== ignore"
         :value="item.id"
         :label="item[labelName]"
         :checked="value === item.id"
       >{{ label(item) }}</el-option>
-      <recursive-option v-if="scopes[index]" :level="init+1" :list="item.children" />
+      <recursive-option
+        v-if="item.id !== ignore && scopes[index]"
+        :level="init+1"
+        :list="item.children"
+        :ignore="ignore"
+      />
     </span>
   </span>
 </template>
@@ -26,10 +32,16 @@ export default {
         return []
       }
     },
+    ignore: {
+      // 忽略的项，一般是其自身的ID
+      // 递归时将会忽略指定ID与其所有子栏目
+      type: Number,
+      default: 0
+    },
     labelName: {
       // 显示名称的键名
       type: String,
-      default: 'label'
+      default: 'title'
     },
     childName: {
       // 子列表键名
@@ -62,7 +74,7 @@ export default {
   },
   methods: {
     label(row) {
-      return '　'.repeat(this.level) + '|- ' + row[this.labelName]
+      return '　'.repeat(this.level) + row[this.labelName]
     },
     scope() {
       this.list.forEach((item, index) => {
