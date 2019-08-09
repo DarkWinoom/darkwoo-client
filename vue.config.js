@@ -45,6 +45,13 @@ module.exports = {
         pathRewrite: {
           ['^' + process.env.VUE_APP_BASE_API]: ''
         }
+      },
+      '/local-api': {
+        target: `http://api.zb1680.me/backend`,
+        changeOrigin: true,
+        pathRewrite: {
+          '^/local-api': ''
+        }
       }
     },
     after: require('./mock/mock-server.js')

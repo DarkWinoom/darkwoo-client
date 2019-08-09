@@ -42,6 +42,7 @@
 
 <script>
 import { mapGetters } from 'vuex'
+import axios from 'axios'
 
 export default {
   name: 'Dashboard',
@@ -49,6 +50,23 @@ export default {
     ...mapGetters([
       'name'
     ])
+  },
+  mounted() {
+    /* const service = axios.create({
+      baseURL: '/local-api',
+      timeout: 5000
+    }) */
+    axios({
+      baseURL: '/local-api',
+      method: 'post',
+      url: '/access/login',
+      data: {
+        passport: 'admin',
+        password: 'admin'
+      }
+    }).then(response => {
+      console.log(response.data)
+    })
   }
 }
 </script>
