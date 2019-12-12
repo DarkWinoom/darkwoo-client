@@ -60,6 +60,7 @@
 <script>
 import SparkMD5 from 'spark-md5'
 import axios from 'axios'
+import { getToken } from '@/utils/auth'
 import FileControl from './components/Control'
 import FileInformation from './components/Information'
 import FileStatus from './components/Status'
@@ -374,11 +375,14 @@ export default {
           check(file, message)
         } else {
           axios({
-            url: this.target,
+            url: this.target + '/merge',
             method: 'post',
+            headers: {
+              'X-Version': 'v1',
+              'X-Token': getToken()
+            },
             data: {
-              ...data,
-              merge: 1
+              ...data
             }
           }).then(response => {
             check(file, response.data.data)
@@ -494,6 +498,7 @@ export default {
       this.successMessage = []
       this.successList = []
       this.loading = false
+      this.completeLock = false
     }
   }
 }

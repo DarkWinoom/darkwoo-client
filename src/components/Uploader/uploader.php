@@ -7,7 +7,7 @@
  */
 session_start();
 header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Headers: Origin, Content-Type, Cookie, X-Token");
+header("Access-Control-Allow-Headers: Origin, Content-Type, Cookie, X-Token, X-Version");
 
 class uploader
 {

@@ -17,8 +17,9 @@
       </div>
       <uploader-modal
         v-model="uploadModalCount"
-        target="http://localhost/laboratory/uploader.php"
-        :fast-transfer="false"
+        target="/local-api/upload"
+        :headers="{'X-Version': 'v1'}"
+        :fast-transfer="true"
         :size-limit="500 * 1024 * 1024"
         :type-limit="['image', 'video', 'rar']"
         :queue-limit="20"
